@@ -1,9 +1,5 @@
 package com.scrumsim.model;
 
-/**
- * Represents a team member in the Scrum team.
- * Follows SRP by only handling member-related data.
- */
 public class Member {
     private final String initials;
     private final String name;

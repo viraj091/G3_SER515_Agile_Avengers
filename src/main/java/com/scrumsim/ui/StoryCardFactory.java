@@ -7,11 +7,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * Factory for creating story card UI components.
- * Follows SRP by only handling story card creation.
- * Follows OCP by being easily extensible for new card styles.
- */
 public class StoryCardFactory {
 
     private final Runnable onStoryChanged;
@@ -20,11 +15,6 @@ public class StoryCardFactory {
         this.onStoryChanged = onStoryChanged;
     }
 
-    /**
-     * Create a visual card for a story with editable controls.
-     * @param story The story to create a card for
-     * @return A JPanel representing the story card
-     */
     public JPanel createStoryCard(Story story) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
@@ -33,22 +23,17 @@ public class StoryCardFactory {
                 new EmptyBorder(8, 10, 8, 10)
         ));
 
-        // Story title
         JLabel title = new JLabel(story.getTitle());
         title.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        // Status dropdown with color indicator
         JPanel statusPanel = createStatusPanel(story);
 
-        // Points spinner
         JSpinner pointSpinner = createPointsSpinner(story);
 
-        // Assignees label
         JLabel assignees = new JLabel(story.getAssignees());
         assignees.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         assignees.setForeground(Color.GRAY);
 
-        // Assemble the card layout
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         top.setOpaque(false);
         top.add(title);
@@ -70,18 +55,13 @@ public class StoryCardFactory {
         return card;
     }
 
-    /**
-     * Create a status selection panel with color indicator.
-     */
     private JPanel createStatusPanel(Story story) {
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         statusPanel.setOpaque(false);
 
-        // Color indicator
-        JLabel statusColor = new JLabel("\u25A0"); // square symbol
+        JLabel statusColor = new JLabel("\u25A0");
         statusColor.setForeground(story.getStatus().getColor());
 
-        // Status dropdown
         String[] statuses = new String[StoryStatus.values().length];
         for (int i = 0; i < StoryStatus.values().length; i++) {
             statuses[i] = StoryStatus.values()[i].getDisplayName();
@@ -89,7 +69,6 @@ public class StoryCardFactory {
         JComboBox<String> statusDropdown = new JComboBox<>(statuses);
         statusDropdown.setSelectedItem(story.getStatus().getDisplayName());
 
-        // Update story and UI when status changes
         statusDropdown.addActionListener(e -> {
             String selected = (String) statusDropdown.getSelectedItem();
             story.setStatus(StoryStatus.fromDisplayName(selected));
@@ -102,9 +81,6 @@ public class StoryCardFactory {
         return statusPanel;
     }
 
-    /**
-     * Create a points spinner control for the story.
-     */
     private JSpinner createPointsSpinner(Story story) {
         JSpinner pointSpinner = new JSpinner(new SpinnerNumberModel(story.getPoints(), 0, 100, 1));
         pointSpinner.addChangeListener(e -> {

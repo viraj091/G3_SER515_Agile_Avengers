@@ -1,10 +1,5 @@
 package com.scrumsim.model;
 
-/**
- * Represents a user story in the product backlog.
- * Follows SRP by only managing story-related data and state.
- * Immutable fields with controlled mutation through methods.
- */
 public class Story {
     private final String title;
     private final String assignees;
@@ -45,10 +40,6 @@ public class Story {
         return assignees;
     }
 
-    /**
-     * Check if this story is completed.
-     * Encapsulates the logic of what "done" means for a story.
-     */
     public boolean isCompleted() {
         return status == StoryStatus.DONE;
     }
