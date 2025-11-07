@@ -54,4 +54,10 @@ public class SimpleTeamService implements TeamService {
     public void joinTeam(User user, Team team) {
         teamRepository.addMemberToTeam(team.getName(), user);
     }
+
+    @Override
+    public boolean isUserInTeam(User user, Team team){
+        return team.isMember(user);
+    }
+
 }
