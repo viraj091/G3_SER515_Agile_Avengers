@@ -76,6 +76,21 @@ public class TeamManagementPanel extends JPanel {
     }
 
     private void onCreateTeam() {
-        onTeamCreated.run();
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        CreateTeamDialog dialog = new CreateTeamDialog(parentFrame, teamRepository);
+        dialog.setVisible(true);
+
+        if (dialog.wasTeamCreated()) {
+            Team newTeam = dialog.getCreatedTeam();
+            teamRepository.save(newTeam);
+            refreshUI();
+        }
+    }
+
+    private void refreshUI() {
+        removeAll();
+        initializeUI();
+        revalidate();
+        repaint();
     }
 }
