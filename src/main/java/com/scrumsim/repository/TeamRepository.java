@@ -1,6 +1,7 @@
 package com.scrumsim.repository;
 
 import com.scrumsim.model.Team;
+import com.scrumsim.model.User;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,4 +10,5 @@ public interface TeamRepository {
     Optional<Team> findByName(String name);
     void save(Team team);
     boolean existsByName(String name);
+    void addMemberToTeam(String teamName, User user);
 }

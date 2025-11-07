@@ -56,4 +56,12 @@ public class InMemoryTeamRepository implements TeamRepository {
         return teams.stream()
                 .anyMatch(team -> team.getName().equalsIgnoreCase(name));
     }
+
+    @Override
+    public void addMemberToTeam(String teamName, User user) {
+        Optional<Team> team = findByName(teamName);
+        if (team.isPresent()) {
+            team.get().addMember(user);
+        }
+    }
 }
