@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class TeamCardFactory {
 
-    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick) {
+    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick, Consumer<Team> onDeleteClick) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -33,6 +33,16 @@ public class TeamCardFactory {
         info.add(role);
 
         card.add(info, BorderLayout.CENTER);
+
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        deleteButton.addActionListener(e -> onDeleteClick.accept(team));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(deleteButton);
+        card.add(buttonPanel, BorderLayout.SOUTH);
+
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         card.addMouseListener(new MouseAdapter() {

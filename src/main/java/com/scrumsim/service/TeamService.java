@@ -15,4 +15,6 @@ public interface TeamService {
     Optional<Team> getTeamByName(String teamName);
 
     boolean teamExists(String teamName);
+
+    boolean deleteTeam(String teamName);
 }
