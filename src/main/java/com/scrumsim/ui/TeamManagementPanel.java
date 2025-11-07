@@ -46,10 +46,21 @@ public class TeamManagementPanel extends JPanel {
         headerPanel.add(title, BorderLayout.WEST);
 
         if (currentUser.isScrumMaster()) {
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+            buttonPanel.setOpaque(false);
+
+            JButton manageRolesButton = new JButton("Manage Roles");
+            manageRolesButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            manageRolesButton.addActionListener(e -> onManageRoles());
+
             JButton createTeamButton = new JButton("Create Team");
             createTeamButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             createTeamButton.addActionListener(e -> onCreateTeam());
-            headerPanel.add(createTeamButton, BorderLayout.EAST);
+
+            buttonPanel.add(manageRolesButton);
+            buttonPanel.add(createTeamButton);
+
+            headerPanel.add(buttonPanel, BorderLayout.EAST);
         }
 
         return headerPanel;
@@ -73,6 +84,12 @@ public class TeamManagementPanel extends JPanel {
 
     private void onTeamSelected(String teamName) {
         navigator.showScrumSimulation(teamName);
+    }
+
+    private void onManageRoles() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        ManageRolesDialog dialog = new ManageRolesDialog(parentFrame, teamService);
+        dialog.setVisible(true);
     }
 
     private void onCreateTeam() {
