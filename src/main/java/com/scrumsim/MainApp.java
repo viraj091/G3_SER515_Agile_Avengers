@@ -6,6 +6,8 @@ import com.scrumsim.navigation.FrameNavigator;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.repository.InMemoryTeamRepository;
 import com.scrumsim.repository.TeamRepository;
+import com.scrumsim.service.SimpleTeamService;
+import com.scrumsim.service.TeamService;
 import com.scrumsim.store.DataStore;
 import com.scrumsim.store.InMemoryDataStore;
 import com.scrumsim.store.Session;
@@ -29,7 +31,9 @@ public class MainApp {
         frame.setLocationRelativeTo(null);
 
         User currentUser = new User("John Doe", UserRole.SCRUM_MASTER);
-        TeamRepository teamRepository = new InMemoryTeamRepository();
+
+        TeamRepository teamRepository = new InMemoryTeamRepository(currentUser);
+        TeamService teamService = new SimpleTeamService(teamRepository);
 
         DataStore<String, Session> sessionStore = new InMemoryDataStore<>();
         SessionManager sessionManager = new SimpleSessionManager(sessionStore);
@@ -40,7 +44,7 @@ public class MainApp {
             navigator.showTeamManagement();
         };
 
-        navigator = new FrameNavigator(frame, currentUser, teamRepository, onCreateTeam,
+        navigator = new FrameNavigator(frame, currentUser, teamService, onCreateTeam,
                                        sessionManager, defaultSession.getSessionId());
 
         navigator.showTeamManagement();
