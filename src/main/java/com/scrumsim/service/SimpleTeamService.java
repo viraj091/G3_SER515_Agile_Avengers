@@ -49,4 +49,15 @@ public class SimpleTeamService implements TeamService {
     public boolean teamExists(String teamName) {
         return teamRepository.existsByName(teamName);
     }
+
+    @Override
+    public boolean deleteTeam(String teamName) {
+        if (teamName == null || teamName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Team name cannot be null or empty");
+        }
+        if (!teamRepository.existsByName(teamName)) {
+            throw new IllegalStateException("Team with name '" + teamName + "' does not exist");
+        }
+        return teamRepository.delete(teamName);
+    }
 }
