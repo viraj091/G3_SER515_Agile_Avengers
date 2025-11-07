@@ -15,4 +15,6 @@ public interface TeamService {
     Optional<Team> getTeamByName(String teamName);
 
     boolean teamExists(String teamName);
+
+    void joinTeam(User user, Team team);
 }

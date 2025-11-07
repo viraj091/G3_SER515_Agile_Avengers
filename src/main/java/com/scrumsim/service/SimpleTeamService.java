@@ -49,4 +49,9 @@ public class SimpleTeamService implements TeamService {
     public boolean teamExists(String teamName) {
         return teamRepository.existsByName(teamName);
     }
+
+    @Override
+    public void joinTeam(User user, Team team) {
+        teamRepository.addMemberToTeam(team.getName(), user);
+    }
 }

@@ -74,7 +74,7 @@ public class TeamManagementPanel extends JPanel {
         List<Team> teams = teamService.getAllTeams();
 
         for (Team team : teams) {
-            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected);
+            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected, this::onJoinTeam);
             listPanel.add(card);
             listPanel.add(Box.createVerticalStrut(10));
         }
@@ -90,6 +90,11 @@ public class TeamManagementPanel extends JPanel {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         ManageRolesDialog dialog = new ManageRolesDialog(parentFrame, teamService);
         dialog.setVisible(true);
+    }
+
+    private void onJoinTeam(Team team) {
+        teamService.joinTeam(currentUser, team);
+        refreshUI();
     }
 
     private void onCreateTeam() {
