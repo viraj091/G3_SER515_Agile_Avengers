@@ -9,4 +9,5 @@ public interface TeamRepository {
     Optional<Team> findByName(String name);
     void save(Team team);
     boolean existsByName(String name);
+    boolean delete(String teamName);
 }

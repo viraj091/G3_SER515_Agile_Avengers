@@ -63,7 +63,7 @@ public class TeamManagementPanel extends JPanel {
         List<Team> teams = teamService.getAllTeams();
 
         for (Team team : teams) {
-            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected);
+            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected, this::onDeleteTeam);
             listPanel.add(card);
             listPanel.add(Box.createVerticalStrut(10));
         }
@@ -73,6 +73,30 @@ public class TeamManagementPanel extends JPanel {
 
     private void onTeamSelected(String teamName) {
         navigator.showScrumSimulation(teamName);
+    }
+
+    private void onDeleteTeam(Team team) {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this team?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            try {
+                teamService.deleteTeam(team.getName());
+                refreshUI();
+            } catch (IllegalStateException e) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage(),
+                    "Delete Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
     private void onCreateTeam() {
