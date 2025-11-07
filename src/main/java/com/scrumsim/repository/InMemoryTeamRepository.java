@@ -1,6 +1,7 @@
 package com.scrumsim.repository;
 
 import com.scrumsim.model.Team;
+import com.scrumsim.model.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,12 +10,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class InMemoryTeamRepository implements TeamRepository {
     private final List<Team> teams;
 
-    public InMemoryTeamRepository() {
+    public InMemoryTeamRepository(User defaultScrumMaster) {
         this.teams = new CopyOnWriteArrayList<>();
-        initializeDefaultTeams();
+        initializeDefaultTeams(defaultScrumMaster);
     }
 
-    private void initializeDefaultTeams() {
+    @Deprecated
+    public InMemoryTeamRepository() {
+        this.teams = new CopyOnWriteArrayList<>();
+        initializeDefaultTeamsDeprecated();
+    }
+
+    private void initializeDefaultTeams(User scrumMaster) {
+        teams.add(new Team("Team Alpha", scrumMaster));
+        teams.add(new Team("Team Beta", scrumMaster));
+        teams.add(new Team("Team Gamma", scrumMaster));
+    }
+
+    @Deprecated
+    private void initializeDefaultTeamsDeprecated() {
         teams.add(new Team("Team Alpha", "Scrum Master"));
         teams.add(new Team("Team Beta", "Developer"));
         teams.add(new Team("Team Gamma", "Product Owner"));

@@ -1,7 +1,8 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Team;
-import com.scrumsim.repository.TeamRepository;
+import com.scrumsim.model.User;
+import com.scrumsim.service.TeamService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -9,18 +10,23 @@ import java.awt.*;
 
 public class CreateTeamDialog extends JDialog {
 
-    private final TeamRepository teamRepository;
+    private final TeamService teamService;
+    private final User currentUser;
     private final JTextField teamNameField;
     private Team createdTeam;
 
-    public CreateTeamDialog(Frame parent, TeamRepository teamRepository) {
+    public CreateTeamDialog(Frame parent, TeamService teamService, User currentUser) {
         super(parent, "Create Team", true);
 
-        if (teamRepository == null) {
-            throw new IllegalArgumentException("TeamRepository cannot be null");
+        if (teamService == null) {
+            throw new IllegalArgumentException("TeamService cannot be null");
+        }
+        if (currentUser == null) {
+            throw new IllegalArgumentException("Current user cannot be null");
         }
 
-        this.teamRepository = teamRepository;
+        this.teamService = teamService;
+        this.currentUser = currentUser;
         this.teamNameField = new JTextField(20);
         this.createdTeam = null;
 
@@ -84,8 +90,12 @@ public class CreateTeamDialog extends JDialog {
             return;
         }
 
-        createdTeam = new Team(teamName, "Scrum Master");
-        dispose();
+        try {
+            createdTeam = teamService.createTeam(teamName, currentUser);
+            dispose();
+        } catch (IllegalStateException e) {
+            showError(e.getMessage());
+        }
     }
 
     private boolean validateTeamName(String teamName) {
@@ -94,7 +104,7 @@ public class CreateTeamDialog extends JDialog {
             return false;
         }
 
-        if (teamRepository.existsByName(teamName)) {
+        if (teamService.teamExists(teamName)) {
             showError("A team with this name already exists.\nPlease choose a different name.");
             return false;
         }

@@ -3,7 +3,7 @@ package com.scrumsim.ui;
 import com.scrumsim.model.Team;
 import com.scrumsim.model.User;
 import com.scrumsim.navigation.Navigator;
-import com.scrumsim.repository.TeamRepository;
+import com.scrumsim.service.TeamService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,13 +15,13 @@ public class TeamManagementPanel extends JPanel {
     private final Navigator navigator;
     private final TeamCardFactory cardFactory;
     private final User currentUser;
-    private final TeamRepository teamRepository;
+    private final TeamService teamService;
     private final Runnable onTeamCreated;
 
-    public TeamManagementPanel(Navigator navigator, User currentUser, TeamRepository teamRepository, Runnable onTeamCreated) {
+    public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService, Runnable onTeamCreated) {
         this.navigator = navigator;
         this.currentUser = currentUser;
-        this.teamRepository = teamRepository;
+        this.teamService = teamService;
         this.onTeamCreated = onTeamCreated;
         this.cardFactory = new TeamCardFactory();
 
@@ -60,7 +60,7 @@ public class TeamManagementPanel extends JPanel {
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setOpaque(false);
 
-        List<Team> teams = teamRepository.findAll();
+        List<Team> teams = teamService.getAllTeams();
 
         for (Team team : teams) {
             JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected);
@@ -77,12 +77,10 @@ public class TeamManagementPanel extends JPanel {
 
     private void onCreateTeam() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        CreateTeamDialog dialog = new CreateTeamDialog(parentFrame, teamRepository);
+        CreateTeamDialog dialog = new CreateTeamDialog(parentFrame, teamService, currentUser);
         dialog.setVisible(true);
 
         if (dialog.wasTeamCreated()) {
-            Team newTeam = dialog.getCreatedTeam();
-            teamRepository.save(newTeam);
             refreshUI();
         }
     }
