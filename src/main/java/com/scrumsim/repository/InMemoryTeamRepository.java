@@ -56,4 +56,9 @@ public class InMemoryTeamRepository implements TeamRepository {
         return teams.stream()
                 .anyMatch(team -> team.getName().equalsIgnoreCase(name));
     }
+
+    @Override
+    public boolean delete(String teamName) {
+        return teams.removeIf(team -> team.getName().equalsIgnoreCase(teamName));
+    }
 }
