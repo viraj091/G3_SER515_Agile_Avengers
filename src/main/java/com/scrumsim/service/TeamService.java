@@ -17,4 +17,6 @@ public interface TeamService {
     boolean teamExists(String teamName);
 
     void joinTeam(User user, Team team);
+
+    boolean isUserInTeam(User user, Team team);
 }
