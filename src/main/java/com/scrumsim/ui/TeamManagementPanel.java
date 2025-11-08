@@ -86,7 +86,7 @@ public class TeamManagementPanel extends JPanel {
 
     private void onManageRoles() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        ManageRolesDialog dialog = new ManageRolesDialog(parentFrame, teamService);
+        ManageRolesDialog dialog = new ManageRolesDialog(parentFrame, teamService, this::refreshUI);
         dialog.setVisible(true);
     }
 
