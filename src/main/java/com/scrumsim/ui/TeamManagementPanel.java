@@ -16,13 +16,11 @@ public class TeamManagementPanel extends JPanel {
     private final TeamCardFactory cardFactory;
     private final User currentUser;
     private final TeamService teamService;
-    private final Runnable onTeamCreated;
 
-    public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService, Runnable onTeamCreated) {
+    public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService) {
         this.navigator = navigator;
         this.currentUser = currentUser;
         this.teamService = teamService;
-        this.onTeamCreated = onTeamCreated;
         this.cardFactory = new TeamCardFactory();
 
         initializeUI();
