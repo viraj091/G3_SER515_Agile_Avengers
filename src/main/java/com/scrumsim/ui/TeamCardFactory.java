@@ -11,7 +11,8 @@ import java.util.function.Consumer;
 
 public class TeamCardFactory {
 
-    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick) {
+    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick, Consumer<Team> onJoinClick) {
+
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -19,13 +20,16 @@ public class TeamCardFactory {
                 new EmptyBorder(10, 10, 10, 10)
         ));
 
+        // Team name label
         JLabel name = new JLabel(team.getName());
         name.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
+        // Role label
         JLabel role = new JLabel(team.getRole());
         role.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         role.setForeground(Color.GRAY);
 
+        // Center info panel
         JPanel info = new JPanel();
         info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
         info.setOpaque(false);
@@ -33,11 +37,26 @@ public class TeamCardFactory {
         info.add(role);
 
         card.add(info, BorderLayout.CENTER);
+
+        // Bottom panel for Join Button
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        bottomPanel.setOpaque(false);
+
+        JButton joinButton = new JButton("Join Team");
+        joinButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        joinButton.addActionListener(e -> onJoinClick.accept(team));
+
+        bottomPanel.add(joinButton);
+        card.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Card click event (if user clicks anywhere else)
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                // prevent click firing when clicking Join button
+                if (e.getSource() instanceof JButton) return;
                 onTeamClick.accept(team.getName());
             }
         });

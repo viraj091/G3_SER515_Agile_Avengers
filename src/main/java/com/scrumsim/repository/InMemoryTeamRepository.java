@@ -56,4 +56,26 @@ public class InMemoryTeamRepository implements TeamRepository {
         return teams.stream()
                 .anyMatch(team -> team.getName().equalsIgnoreCase(name));
     }
+
+    @Override
+    public void addMemberToTeam(String teamName, User user) {
+        Optional<Team> team = findByName(teamName);
+        if (team.isPresent()) {
+            team.get().addMember(user);
+        }
+    }
+
+    @Override
+    public void updateMemberRoles(String teamName, java.util.Map<String, String> memberRoles) {
+        Optional<Team> teamOptional = findByName(teamName);
+        if (teamOptional.isPresent()) {
+            Team team = teamOptional.get();
+            // Update each member's role in the team
+            for (java.util.Map.Entry<String, String> entry : memberRoles.entrySet()) {
+                String memberName = entry.getKey();
+                String roleName = entry.getValue();
+                team.setMemberRole(memberName, roleName);
+            }
+        }
+    }
 }

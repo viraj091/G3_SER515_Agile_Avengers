@@ -16,12 +16,11 @@ public class FrameNavigator implements Navigator {
     private final ProgressCalculator progressCalculator;
     private final User currentUser;
     private final TeamService teamService;
-    private final Runnable onCreateTeam;
     private final SessionManager sessionManager;
     private final String currentSessionId;
 
     public FrameNavigator(JFrame frame, User currentUser, TeamService teamService,
-                          Runnable onCreateTeam, SessionManager sessionManager, String currentSessionId) {
+                          SessionManager sessionManager, String currentSessionId) {
         if (frame == null) {
             throw new IllegalArgumentException("Frame cannot be null");
         }
@@ -35,7 +34,6 @@ public class FrameNavigator implements Navigator {
         this.frame = frame;
         this.currentUser = currentUser;
         this.teamService = teamService;
-        this.onCreateTeam = onCreateTeam;
         this.sessionManager = sessionManager;
         this.currentSessionId = currentSessionId;
         this.progressCalculator = new SprintProgressCalculator();
@@ -43,7 +41,7 @@ public class FrameNavigator implements Navigator {
 
     @Override
     public void showTeamManagement() {
-        switchPanel(new TeamManagementPanel(this, currentUser, teamService, onCreateTeam));
+        switchPanel(new TeamManagementPanel(this, currentUser, teamService));
     }
 
     @Override

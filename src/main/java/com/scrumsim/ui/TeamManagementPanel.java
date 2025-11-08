@@ -16,13 +16,11 @@ public class TeamManagementPanel extends JPanel {
     private final TeamCardFactory cardFactory;
     private final User currentUser;
     private final TeamService teamService;
-    private final Runnable onTeamCreated;
 
-    public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService, Runnable onTeamCreated) {
+    public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService) {
         this.navigator = navigator;
         this.currentUser = currentUser;
         this.teamService = teamService;
-        this.onTeamCreated = onTeamCreated;
         this.cardFactory = new TeamCardFactory();
 
         initializeUI();
@@ -74,7 +72,7 @@ public class TeamManagementPanel extends JPanel {
         List<Team> teams = teamService.getAllTeams();
 
         for (Team team : teams) {
-            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected);
+            JPanel card = cardFactory.createTeamCard(team, this::onTeamSelected, this::onJoinTeam);
             listPanel.add(card);
             listPanel.add(Box.createVerticalStrut(10));
         }
@@ -90,6 +88,33 @@ public class TeamManagementPanel extends JPanel {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         ManageRolesDialog dialog = new ManageRolesDialog(parentFrame, teamService);
         dialog.setVisible(true);
+    }
+
+    private void onJoinTeam(Team team) {
+        // Step 1: Check if user is already a member
+        if (teamService.isUserInTeam(currentUser, team)) {
+            JOptionPane.showMessageDialog(
+                this,
+                "You are already part of this team.",
+                "Already a Member",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        // Step 2: Show confirmation dialog
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Do you want to join this team?",
+            "Confirm Join",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        // Step 3: If YES, join the team
+        if (confirm == JOptionPane.YES_OPTION) {
+            teamService.joinTeam(currentUser, team);
+            refreshUI();
+        }
     }
 
     private void onCreateTeam() {

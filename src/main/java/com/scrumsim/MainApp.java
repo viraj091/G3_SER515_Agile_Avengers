@@ -40,11 +40,7 @@ public class MainApp {
         Session defaultSession = sessionManager.createSession("default-user", 30);
         System.out.println("Application started with session: " + defaultSession.getSessionId());
 
-        Runnable onCreateTeam = () -> {
-            navigator.showTeamManagement();
-        };
-
-        navigator = new FrameNavigator(frame, currentUser, teamService, onCreateTeam,
+        navigator = new FrameNavigator(frame, currentUser, teamService,
                                        sessionManager, defaultSession.getSessionId());
 
         navigator.showTeamManagement();

@@ -6,6 +6,7 @@ import com.scrumsim.repository.TeamRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 public class SimpleTeamService implements TeamService {
 
@@ -49,4 +50,30 @@ public class SimpleTeamService implements TeamService {
     public boolean teamExists(String teamName) {
         return teamRepository.existsByName(teamName);
     }
+
+    @Override
+    public void joinTeam(User user, Team team) {
+        teamRepository.addMemberToTeam(team.getName(), user);
+    }
+
+    @Override
+    public boolean isUserInTeam(User user, Team team){
+        return team.isMember(user);
+    }
+
+    @Override
+    public void saveRoles(Map<String, Map<String, String>> roles) {
+        if (roles == null) {
+            throw new IllegalArgumentException("Roles map cannot be null");
+        }
+
+        // Iterate through each team and update member roles
+        for (Map.Entry<String, Map<String, String>> entry : roles.entrySet()) {
+            String teamName = entry.getKey();
+            Map<String, String> memberRoles = entry.getValue();
+
+            teamRepository.updateMemberRoles(teamName, memberRoles);
+        }
+    }
+
 }
