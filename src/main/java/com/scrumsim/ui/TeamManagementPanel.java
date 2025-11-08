@@ -93,8 +93,30 @@ public class TeamManagementPanel extends JPanel {
     }
 
     private void onJoinTeam(Team team) {
-        teamService.joinTeam(currentUser, team);
-        refreshUI();
+        // Step 1: Check if user is already a member
+        if (teamService.isUserInTeam(currentUser, team)) {
+            JOptionPane.showMessageDialog(
+                this,
+                "You are already part of this team.",
+                "Already a Member",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        // Step 2: Show confirmation dialog
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Do you want to join this team?",
+            "Confirm Join",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        // Step 3: If YES, join the team
+        if (confirm == JOptionPane.YES_OPTION) {
+            teamService.joinTeam(currentUser, team);
+            refreshUI();
+        }
     }
 
     private void onCreateTeam() {

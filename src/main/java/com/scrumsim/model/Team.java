@@ -45,4 +45,8 @@ public class Team {
     public void addMember(User user) {
         members.add(user);
     }
+
+    public boolean isMember(User user){
+        return members.contains(user);
+    }
 }
