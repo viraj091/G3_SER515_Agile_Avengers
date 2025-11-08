@@ -6,6 +6,7 @@ import com.scrumsim.service.TeamService;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,19 @@ public class ManageRolesDialog extends JDialog {
         "Tester",
         "Designer"
     };
-    private final Map<String, Map<String, JComboBox<String>>> teamMemberRoles;
+    // Stores team name -> list of MemberRolePair
+    private final Map<String, List<MemberRolePair>> teamMemberRoles;
+
+    // Helper class to store member and role combo boxes together
+    private static class MemberRolePair {
+        JComboBox<String> memberCombo;
+        JComboBox<String> roleCombo;
+
+        MemberRolePair(JComboBox<String> memberCombo, JComboBox<String> roleCombo) {
+            this.memberCombo = memberCombo;
+            this.roleCombo = roleCombo;
+        }
+    }
 
     public ManageRolesDialog(Frame parent, TeamService teamService) {
         super(parent, "Manage Team Member Roles", true);
@@ -132,7 +145,7 @@ public class ManageRolesDialog extends JDialog {
         gbc.gridx = 1;
         membersPanel.add(headerRole, gbc);
 
-        Map<String, JComboBox<String>> memberRoleMap = new HashMap<>();
+        List<MemberRolePair> pairList = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             gbc.gridy = i + 1;
@@ -153,11 +166,11 @@ public class ManageRolesDialog extends JDialog {
             roleCombo.setSelectedIndex(2); // default: Developer
             membersPanel.add(roleCombo, gbc);
 
-            String key = team.getName() + "_member_" + i;
-            memberRoleMap.put(key, roleCombo);
+            // Store both combo boxes together
+            pairList.add(new MemberRolePair(memberCombo, roleCombo));
         }
 
-        teamMemberRoles.put(team.getName(), memberRoleMap);
+        teamMemberRoles.put(team.getName(), pairList);
 
         return membersPanel;
     }
@@ -166,12 +179,89 @@ public class ManageRolesDialog extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
 
+        JButton saveButton = new JButton("Save");
+        saveButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        saveButton.addActionListener(e -> handleSave());
+
         JButton closeButton = new JButton("Close");
         closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         closeButton.addActionListener(e -> dispose());
 
+        buttonPanel.add(saveButton);
         buttonPanel.add(closeButton);
 
         return buttonPanel;
+    }
+
+    // Handles the Save button click
+    private void handleSave() {
+        // Step 1: Collect all member-role assignments from UI
+        Map<String, Map<String, String>> allRoles = collectRolesFromUI();
+
+        // Step 2: Validate that each team has at least one Scrum Master
+        String validationError = validateScrumMasterRule(allRoles);
+        if (validationError != null) {
+            JOptionPane.showMessageDialog(
+                this,
+                validationError,
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        // Step 3: Save the roles through the service
+        teamService.saveRoles(allRoles);
+
+        // Step 4: Show success message
+        JOptionPane.showMessageDialog(
+            this,
+            "Roles saved successfully.",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    // Collects member-role mappings from all combo boxes
+    private Map<String, Map<String, String>> collectRolesFromUI() {
+        Map<String, Map<String, String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<MemberRolePair>> entry : teamMemberRoles.entrySet()) {
+            String teamName = entry.getKey();
+            List<MemberRolePair> pairs = entry.getValue();
+
+            Map<String, String> memberRoleMap = new HashMap<>();
+            for (MemberRolePair pair : pairs) {
+                String memberName = (String) pair.memberCombo.getSelectedItem();
+                String roleName = (String) pair.roleCombo.getSelectedItem();
+                memberRoleMap.put(memberName, roleName);
+            }
+
+            result.put(teamName, memberRoleMap);
+        }
+
+        return result;
+    }
+
+    // Validates that each team has at least one Scrum Master
+    private String validateScrumMasterRule(Map<String, Map<String, String>> allRoles) {
+        for (Map.Entry<String, Map<String, String>> entry : allRoles.entrySet()) {
+            String teamName = entry.getKey();
+            Map<String, String> memberRoles = entry.getValue();
+
+            boolean hasScrumMaster = false;
+            for (String role : memberRoles.values()) {
+                if ("Scrum Master".equals(role)) {
+                    hasScrumMaster = true;
+                    break;
+                }
+            }
+
+            if (!hasScrumMaster) {
+                return "Each team must have at least one Scrum Master.\nTeam '" + teamName + "' has no Scrum Master assigned.";
+            }
+        }
+
+        return null; // Validation passed
     }
 }

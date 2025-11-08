@@ -5,6 +5,7 @@ import com.scrumsim.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 public interface TeamService {
 
@@ -19,4 +20,6 @@ public interface TeamService {
     void joinTeam(User user, Team team);
 
     boolean isUserInTeam(User user, Team team);
+
+    void saveRoles(Map<String, Map<String, String>> roles);
 }
