@@ -1,18 +1,19 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
-import com.scrumsim.model.StoryStatus;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.function.Consumer;
+
 
 public class StoryCardFactory {
 
-    private final Runnable onStoryChanged;
+    private final Consumer<Story> onEditStory;
 
-    public StoryCardFactory(Runnable onStoryChanged) {
-        this.onStoryChanged = onStoryChanged;
+    public StoryCardFactory(Consumer<Story> onEditStory) {
+        this.onEditStory = onEditStory;
     }
 
     public JPanel createStoryCard(Story story) {
@@ -20,73 +21,50 @@ public class StoryCardFactory {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(220, 220, 220)),
-                new EmptyBorder(8, 10, 8, 10)
+                new EmptyBorder(10, 12, 10, 12)
         ));
 
+        // Story title
         JLabel title = new JLabel(story.getTitle());
         title.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        JPanel statusPanel = createStatusPanel(story);
+        // Below part is for assignees label ( basically to show who is assigned)
+        String assignees = story.getAssignees();
+        JLabel assigneesLabel = new JLabel();
+        assigneesLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        assigneesLabel.setForeground(new Color(100, 100, 100));
 
-        JSpinner pointSpinner = createPointsSpinner(story);
-
-        JLabel assignees = new JLabel(story.getAssignees());
-        assignees.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        assignees.setForeground(Color.GRAY);
-
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        top.setOpaque(false);
-        top.add(title);
-
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        bottom.setOpaque(false);
-        bottom.add(statusPanel);
-        bottom.add(new JLabel("Points:"));
-        bottom.add(pointSpinner);
-        bottom.add(assignees);
-
-        JPanel wrapper = new JPanel();
-        wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
-        wrapper.setOpaque(false);
-        wrapper.add(top);
-        wrapper.add(bottom);
-
-        card.add(wrapper, BorderLayout.CENTER);
-        return card;
-    }
-
-    private JPanel createStatusPanel(Story story) {
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        statusPanel.setOpaque(false);
-
-        JLabel statusColor = new JLabel("\u25A0");
-        statusColor.setForeground(story.getStatus().getColor());
-
-        String[] statuses = new String[StoryStatus.values().length];
-        for (int i = 0; i < StoryStatus.values().length; i++) {
-            statuses[i] = StoryStatus.values()[i].getDisplayName();
+        if (assignees != null && !assignees.isEmpty()) {
+            assigneesLabel.setText("Assigned to: " + assignees);
+        } else {
+            assigneesLabel.setText("Not assigned");
         }
-        JComboBox<String> statusDropdown = new JComboBox<>(statuses);
-        statusDropdown.setSelectedItem(story.getStatus().getDisplayName());
 
-        statusDropdown.addActionListener(e -> {
-            String selected = (String) statusDropdown.getSelectedItem();
-            story.setStatus(StoryStatus.fromDisplayName(selected));
-            statusColor.setForeground(story.getStatus().getColor());
-            onStoryChanged.run();
-        });
+        // Edit button at bottom-right
+        JButton editButton = new JButton("Edit User Story");
+        editButton.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        editButton.setFocusPainted(false);
+        editButton.addActionListener(e -> onEditStory.accept(story));
 
-        statusPanel.add(statusColor);
-        statusPanel.add(statusDropdown);
-        return statusPanel;
-    }
+        // Button panel aligned to the right
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(editButton);
 
-    private JSpinner createPointsSpinner(Story story) {
-        JSpinner pointSpinner = new JSpinner(new SpinnerNumberModel(story.getPoints(), 0, 100, 1));
-        pointSpinner.addChangeListener(e -> {
-            story.setPoints((Integer) pointSpinner.getValue());
-            onStoryChanged.run();
-        });
-        return pointSpinner;
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+        textPanel.add(title);
+        textPanel.add(Box.createVerticalStrut(5));
+        textPanel.add(assigneesLabel);
+
+        // Main content panel
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setOpaque(false);
+        contentPanel.add(textPanel, BorderLayout.CENTER);
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        card.add(contentPanel, BorderLayout.CENTER);
+        return card;
     }
 }

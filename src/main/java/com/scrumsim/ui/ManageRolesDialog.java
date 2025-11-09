@@ -1,0 +1,281 @@
+package com.scrumsim.ui;
+
+import com.scrumsim.model.Team;
+import com.scrumsim.service.TeamService;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ManageRolesDialog extends JDialog {
+
+    private final TeamService teamService;
+    private final Runnable onRolesSaved; // Callback to refresh parent UI
+    private final String[] availableMembers = {
+        "Viraj Rathor",
+        "Sairaj Dalvi",
+        "Shreyas Revankar",
+        "Pranav Irlapale",
+        "Gunjan Purohit"
+    };
+    private final String[] availableRoles = {
+        "Scrum Master",
+        "Product Owner",
+        "Developer",
+        "Tester",
+        "Designer"
+    };
+    // Stores team name -> list of MemberRolePair
+    private final Map<String, List<MemberRolePair>> teamMemberRoles;
+
+    // Helper class to store member and role combo boxes together
+    private static class MemberRolePair {
+        JComboBox<String> memberCombo;
+        JComboBox<String> roleCombo;
+
+        MemberRolePair(JComboBox<String> memberCombo, JComboBox<String> roleCombo) {
+            this.memberCombo = memberCombo;
+            this.roleCombo = roleCombo;
+        }
+    }
+
+    // Constructor accepts a callback to refresh the parent UI after saving
+    public ManageRolesDialog(Frame parent, TeamService teamService, Runnable onRolesSaved) {
+        super(parent, "Manage Team Member Roles", true);
+
+        if (teamService == null) {
+            throw new IllegalArgumentException("TeamService cannot be null");
+        }
+
+        this.teamService = teamService;
+        this.onRolesSaved = onRolesSaved;
+        this.teamMemberRoles = new HashMap<>();
+
+        initializeUI();
+        setSize(900, 600);
+        setLocationRelativeTo(parent);
+    }
+
+    private void initializeUI() {
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Color.WHITE);
+
+        mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
+        mainPanel.add(createTeamsScrollPanel(), BorderLayout.CENTER);
+        mainPanel.add(createButtonPanel(), BorderLayout.SOUTH);
+
+        setContentPane(mainPanel);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+
+        JLabel title = new JLabel("Manage Team Member Roles");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        headerPanel.add(title, BorderLayout.NORTH);
+
+        JLabel info = new JLabel("Select members and assign roles");
+        info.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        info.setForeground(Color.GRAY);
+        headerPanel.add(info, BorderLayout.SOUTH);
+
+        return headerPanel;
+    }
+
+    private JScrollPane createTeamsScrollPanel() {
+        JPanel teamsContainer = new JPanel();
+        teamsContainer.setLayout(new BoxLayout(teamsContainer, BoxLayout.Y_AXIS));
+        teamsContainer.setBackground(Color.WHITE);
+
+        List<Team> teams = teamService.getAllTeams();
+
+        for (Team team : teams) {
+            teamsContainer.add(createTeamPanel(team));
+            teamsContainer.add(Box.createVerticalStrut(20));
+        }
+
+        JScrollPane scrollPane = new JScrollPane(teamsContainer);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBorder(null);
+
+        return scrollPane;
+    }
+
+    private JPanel createTeamPanel(Team team) {
+        JPanel wrapper = new JPanel(new BorderLayout(10, 10));
+        wrapper.setBackground(Color.WHITE);
+        wrapper.setBorder(new EmptyBorder(10, 0, 10, 0));
+
+        // Simple Team Title (no blue border)
+        JLabel teamLabel = new JLabel(team.getName());
+        teamLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        teamLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        wrapper.add(teamLabel, BorderLayout.NORTH);
+        wrapper.add(createMembersGrid(team), BorderLayout.CENTER);
+
+        // Subtle bottom separator for visual clarity
+        wrapper.setBorder(BorderFactory.createMatteBorder(
+            0, 0, 1, 0, new Color(220, 220, 220))
+        );
+
+        return wrapper;
+    }
+
+    private JPanel createMembersGrid(Team team) {
+        JPanel membersPanel = new JPanel(new GridBagLayout());
+        membersPanel.setBackground(Color.WHITE);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0;
+
+        JLabel headerMember = new JLabel("Team Member");
+        headerMember.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        membersPanel.add(headerMember, gbc);
+
+        JLabel headerRole = new JLabel("Role");
+        headerRole.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        gbc.gridx = 1;
+        membersPanel.add(headerRole, gbc);
+
+        List<MemberRolePair> pairList = new ArrayList<>();
+
+        // Get saved member roles from the team
+        Map<String, String> savedRoles = team.getAllMemberRoles();
+
+        for (int i = 0; i < 3; i++) {
+            gbc.gridy = i + 1;
+
+            gbc.gridx = 0;
+            JComboBox<String> memberCombo = new JComboBox<>(availableMembers);
+            memberCombo.setPreferredSize(new Dimension(220, 30));
+            memberCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            if (i < availableMembers.length) {
+                memberCombo.setSelectedIndex(i);
+            }
+            membersPanel.add(memberCombo, gbc);
+
+            gbc.gridx = 1;
+            JComboBox<String> roleCombo = new JComboBox<>(availableRoles);
+            roleCombo.setPreferredSize(new Dimension(220, 30));
+            roleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            // Load saved role for this member, or use default
+            String memberName = availableMembers[i];
+            String savedRole = savedRoles.get(memberName);
+            if (savedRole != null) {
+                // Set to saved role
+                roleCombo.setSelectedItem(savedRole);
+            } else {
+                // Default: Developer
+                roleCombo.setSelectedIndex(2);
+            }
+
+            membersPanel.add(roleCombo, gbc);
+
+            // Store both combo boxes together
+            pairList.add(new MemberRolePair(memberCombo, roleCombo));
+        }
+
+        teamMemberRoles.put(team.getName(), pairList);
+
+        return membersPanel;
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(Color.WHITE);
+
+        JButton saveButton = new JButton("Save");
+        saveButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        saveButton.addActionListener(e -> handleSave());
+
+        JButton closeButton = new JButton("Close");
+        closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        closeButton.addActionListener(e -> dispose());
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(closeButton);
+
+        return buttonPanel;
+    }
+
+    private void handleSave() {
+        Map<String, Map<String, String>> allRoles = collectRolesFromUI();
+
+        String validationError = validateScrumMasterRule(allRoles);
+        if (validationError != null) {
+            JOptionPane.showMessageDialog(
+                this,
+                validationError,
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        teamService.saveRoles(allRoles);
+
+        JOptionPane.showMessageDialog(
+            this,
+            "Roles saved successfully.",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+        if (onRolesSaved != null) {
+            onRolesSaved.run();
+        }
+    }
+
+    private Map<String, Map<String, String>> collectRolesFromUI() {
+        Map<String, Map<String, String>> result = new HashMap<>();
+
+        for (Map.Entry<String, List<MemberRolePair>> entry : teamMemberRoles.entrySet()) {
+            String teamName = entry.getKey();
+            List<MemberRolePair> pairs = entry.getValue();
+
+            Map<String, String> memberRoleMap = new HashMap<>();
+            for (MemberRolePair pair : pairs) {
+                String memberName = (String) pair.memberCombo.getSelectedItem();
+                String roleName = (String) pair.roleCombo.getSelectedItem();
+                memberRoleMap.put(memberName, roleName);
+            }
+
+            result.put(teamName, memberRoleMap);
+        }
+
+        return result;
+    }
+
+    private String validateScrumMasterRule(Map<String, Map<String, String>> allRoles) {
+        for (Map.Entry<String, Map<String, String>> entry : allRoles.entrySet()) {
+            String teamName = entry.getKey();
+            Map<String, String> memberRoles = entry.getValue();
+
+            boolean hasScrumMaster = false;
+            for (String role : memberRoles.values()) {
+                if ("Scrum Master".equals(role)) {
+                    hasScrumMaster = true;
+                    break;
+                }
+            }
+
+            if (!hasScrumMaster) {
+                return "Each team must have at least one Scrum Master.\nTeam '" + teamName + "' has no Scrum Master assigned.";
+            }
+        }
+
+        return null;
+    }
+}
