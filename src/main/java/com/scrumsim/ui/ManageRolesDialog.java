@@ -14,6 +14,7 @@ import java.util.Map;
 public class ManageRolesDialog extends JDialog {
 
     private final TeamService teamService;
+    private final Runnable onRolesSaved; // Callback to refresh parent UI
     private final String[] availableMembers = {
         "Viraj Rathor",
         "Sairaj Dalvi",
@@ -42,7 +43,8 @@ public class ManageRolesDialog extends JDialog {
         }
     }
 
-    public ManageRolesDialog(Frame parent, TeamService teamService) {
+    // Constructor accepts a callback to refresh the parent UI after saving
+    public ManageRolesDialog(Frame parent, TeamService teamService, Runnable onRolesSaved) {
         super(parent, "Manage Team Member Roles", true);
 
         if (teamService == null) {
@@ -50,6 +52,7 @@ public class ManageRolesDialog extends JDialog {
         }
 
         this.teamService = teamService;
+        this.onRolesSaved = onRolesSaved;
         this.teamMemberRoles = new HashMap<>();
 
         initializeUI();
@@ -147,6 +150,9 @@ public class ManageRolesDialog extends JDialog {
 
         List<MemberRolePair> pairList = new ArrayList<>();
 
+        // Get saved member roles from the team
+        Map<String, String> savedRoles = team.getAllMemberRoles();
+
         for (int i = 0; i < 3; i++) {
             gbc.gridy = i + 1;
 
@@ -163,7 +169,18 @@ public class ManageRolesDialog extends JDialog {
             JComboBox<String> roleCombo = new JComboBox<>(availableRoles);
             roleCombo.setPreferredSize(new Dimension(220, 30));
             roleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            roleCombo.setSelectedIndex(2); // default: Developer
+
+            // Load saved role for this member, or use default
+            String memberName = availableMembers[i];
+            String savedRole = savedRoles.get(memberName);
+            if (savedRole != null) {
+                // Set to saved role
+                roleCombo.setSelectedItem(savedRole);
+            } else {
+                // Default: Developer
+                roleCombo.setSelectedIndex(2);
+            }
+
             membersPanel.add(roleCombo, gbc);
 
             // Store both combo boxes together
@@ -193,12 +210,9 @@ public class ManageRolesDialog extends JDialog {
         return buttonPanel;
     }
 
-    // Handles the Save button click
     private void handleSave() {
-        // Step 1: Collect all member-role assignments from UI
         Map<String, Map<String, String>> allRoles = collectRolesFromUI();
 
-        // Step 2: Validate that each team has at least one Scrum Master
         String validationError = validateScrumMasterRule(allRoles);
         if (validationError != null) {
             JOptionPane.showMessageDialog(
@@ -210,19 +224,20 @@ public class ManageRolesDialog extends JDialog {
             return;
         }
 
-        // Step 3: Save the roles through the service
         teamService.saveRoles(allRoles);
 
-        // Step 4: Show success message
         JOptionPane.showMessageDialog(
             this,
             "Roles saved successfully.",
             "Success",
             JOptionPane.INFORMATION_MESSAGE
         );
+
+        if (onRolesSaved != null) {
+            onRolesSaved.run();
+        }
     }
 
-    // Collects member-role mappings from all combo boxes
     private Map<String, Map<String, String>> collectRolesFromUI() {
         Map<String, Map<String, String>> result = new HashMap<>();
 
@@ -243,7 +258,6 @@ public class ManageRolesDialog extends JDialog {
         return result;
     }
 
-    // Validates that each team has at least one Scrum Master
     private String validateScrumMasterRule(Map<String, Map<String, String>> allRoles) {
         for (Map.Entry<String, Map<String, String>> entry : allRoles.entrySet()) {
             String teamName = entry.getKey();
@@ -262,6 +276,6 @@ public class ManageRolesDialog extends JDialog {
             }
         }
 
-        return null; // Validation passed
+        return null;
     }
 }
