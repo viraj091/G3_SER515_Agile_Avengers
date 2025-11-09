@@ -30,7 +30,7 @@ public class MainApp {
         frame.setSize(1000, 650);
         frame.setLocationRelativeTo(null);
 
-        User currentUser = new User("John Doe", UserRole.SCRUM_MASTER);
+        User currentUser = new User("Sairaj Dalvi", UserRole.SCRUM_MASTER);
 
         TeamRepository teamRepository = new InMemoryTeamRepository(currentUser);
         TeamService teamService = new SimpleTeamService(teamRepository);
