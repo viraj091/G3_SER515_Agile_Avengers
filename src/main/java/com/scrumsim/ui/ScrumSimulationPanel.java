@@ -3,6 +3,7 @@ package com.scrumsim.ui;
 import com.scrumsim.model.Member;
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
+import com.scrumsim.model.User;
 import com.scrumsim.navigation.FrameNavigator;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
@@ -19,6 +20,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final Navigator navigator;
     private final ProgressCalculator progressCalculator;
     private final String teamName;
+    private final User currentUser;
 
     private final List<Story> stories;
     private final JLabel progressLabel;
@@ -28,10 +30,11 @@ public class ScrumSimulationPanel extends JPanel {
 
     private static final int SPRINT_GOAL = 30;
 
-    public ScrumSimulationPanel(Navigator navigator, String teamName, ProgressCalculator progressCalculator) {
+    public ScrumSimulationPanel(Navigator navigator, String teamName, ProgressCalculator progressCalculator, User currentUser) {
         this.navigator = navigator;
         this.teamName = teamName;
         this.progressCalculator = progressCalculator;
+        this.currentUser = currentUser;
         this.stories = initializeStories();
 
         // Updated to use Consumer<Story> callback for edit functionality
@@ -78,12 +81,18 @@ public class ScrumSimulationPanel extends JPanel {
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
-        // Assign Story button in top-right
+        // My Work and Assign Story buttons in top-right
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setOpaque(false);
+
+        JButton myWorkBtn = new JButton("My Work");
+        myWorkBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        myWorkBtn.addActionListener(e -> showMyWorkDialog());
+        rightPanel.add(myWorkBtn);
+
         JButton assignStoryBtn = new JButton("Assign Story");
         assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rightPanel.setOpaque(false);
         rightPanel.add(assignStoryBtn);
 
         topSection.add(leftPanel, BorderLayout.WEST);
@@ -102,6 +111,13 @@ public class ScrumSimulationPanel extends JPanel {
         AssignStoryDialog dialog = new AssignStoryDialog(parentFrame, stories);
         dialog.setVisible(true);
         refreshUI(); // Refresh to show updated assignees
+    }
+
+    // Shows dialog with stories assigned to current user
+    private void showMyWorkDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        dialog.setVisible(true);
     }
 
     private void showSessionDialog() {

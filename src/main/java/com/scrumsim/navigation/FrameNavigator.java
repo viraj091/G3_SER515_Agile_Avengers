@@ -46,7 +46,7 @@ public class FrameNavigator implements Navigator {
 
     @Override
     public void showScrumSimulation(String teamName) {
-        switchPanel(new ScrumSimulationPanel(this, teamName, progressCalculator));
+        switchPanel(new ScrumSimulationPanel(this, teamName, progressCalculator, currentUser));
     }
 
     public SessionManager getSessionManager() {
