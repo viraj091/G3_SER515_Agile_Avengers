@@ -78,13 +78,30 @@ public class ScrumSimulationPanel extends JPanel {
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
+        // Assign Story button in top-right
+        JButton assignStoryBtn = new JButton("Assign Story");
+        assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setOpaque(false);
+        rightPanel.add(assignStoryBtn);
+
         topSection.add(leftPanel, BorderLayout.WEST);
         topSection.add(title, BorderLayout.CENTER);
+        topSection.add(rightPanel, BorderLayout.EAST);
 
         header.add(topSection, BorderLayout.NORTH);
         header.add(progressLabel, BorderLayout.SOUTH);
 
         return header;
+    }
+
+    // Shows simple dialog to assign story to developer
+    private void showAssignStoryDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        AssignStoryDialog dialog = new AssignStoryDialog(parentFrame, stories);
+        dialog.setVisible(true);
+        refreshUI(); // Refresh to show updated assignees
     }
 
     private void showSessionDialog() {
@@ -209,15 +226,12 @@ public class ScrumSimulationPanel extends JPanel {
     private void refreshUI() {
         removeAll();
 
-        // Recreate all components
         add(createHeader(), BorderLayout.NORTH);
         add(createContentArea(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
 
-        // Update progress with new story data
         updateProgress();
 
-        // Repaint the panel
         revalidate();
         repaint();
     }
