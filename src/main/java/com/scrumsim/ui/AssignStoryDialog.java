@@ -11,6 +11,7 @@ public class AssignStoryDialog extends JDialog {
     private JComboBox<String> storyComboBox;
     private JComboBox<String> developerComboBox;
     private List<Story> stories;
+    private String[] developers;
 
     public AssignStoryDialog(Frame parent, List<Story> stories) {
         super(parent, "Assign Story to Developer", true);
@@ -28,7 +29,7 @@ public class AssignStoryDialog extends JDialog {
         add(storyComboBox);
 
         add(new JLabel("Select Developer:"));
-        String[] developers = {
+        developers = new String[]{
             "Viraj Rathor",
             "Sairaj Dalvi",
             "Shreyas Revankar",
@@ -53,9 +54,24 @@ public class AssignStoryDialog extends JDialog {
 
         if (storyIndex >= 0 && developer != null) {
             Story story = stories.get(storyIndex);
-
-            // Add developer to assignees
             String currentAssignees = story.getAssignees();
+
+            boolean allDevelopersAssigned = true;
+            for (String dev : developers) {
+                if (currentAssignees == null || !currentAssignees.contains(dev)) {
+                    allDevelopersAssigned = false;
+                    break;
+                }
+            }
+
+            if (allDevelopersAssigned) {
+                JOptionPane.showMessageDialog(this,
+                    "No Developers Available",
+                    "",
+                    JOptionPane.PLAIN_MESSAGE);
+                return;
+            }
+
             if (currentAssignees == null || currentAssignees.isEmpty()) {
                 story.setAssignees(developer);
             } else if (!currentAssignees.contains(developer)) {
