@@ -41,9 +41,20 @@ public class TeamManagementPanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setOpaque(false);
+
         JLabel title = new JLabel("Team Management");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        headerPanel.add(title, BorderLayout.WEST);
+        leftPanel.add(title);
+
+        JLabel userInfo = new JLabel("Logged in as: " + currentUser.getName() + " (" + currentUser.getRole().getDisplayName() + ")");
+        userInfo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        userInfo.setForeground(new Color(100, 100, 100));
+        leftPanel.add(userInfo);
+
+        headerPanel.add(leftPanel, BorderLayout.WEST);
 
         if (currentUser.isScrumMaster()) {
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
