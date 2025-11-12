@@ -2,7 +2,7 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.User;
 import com.scrumsim.model.UserRole;
-import com.scrumsim.service.AuthService;
+import com.scrumsim.service.DefaultAuthService;
 import com.scrumsim.store.UserSession;
 
 import javax.swing.*;
@@ -10,7 +10,7 @@ import java.awt.*;
 
 public class LoginPanel extends JPanel {
 
-    private final AuthService authService;
+    private final DefaultAuthService authService;
     private final LoginListener loginListener;
 
     private JComboBox<String> roleComboBox;
@@ -18,8 +18,8 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwordField;
     private JButton loginButton;
 
-    public LoginPanel(AuthService authService, LoginListener loginListener) {
-        this.authService = authService;
+    public LoginPanel(DefaultAuthService authService2, LoginListener loginListener) {
+        this.authService = authService2;
         this.loginListener = loginListener;
 
         setupUI();
