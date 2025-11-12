@@ -1,123 +1,76 @@
 package com.scrumsim.service;
 
+import com.scrumsim.model.Credentials;
 import com.scrumsim.model.User;
 import com.scrumsim.model.UserRole;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultAuthService implements AuthService {
+/**
+ * DefaultAuthService: provides simple in-memory authentication.
+ *
+ * ✅ Follows SOLID:
+ * - SRP: Only manages user data and login logic.
+ * - OCP: Can be extended to use a DB later without changing AuthService.
+ * - DIP: Works with abstractions (User and Credentials).
+ */
+public class DefaultAuthService {
 
-    private final Map<String, UserCredentials> userDatabase;
+    // In-memory "database" of users
+    private final Map<String, User> userDatabase = new HashMap<>();
 
+    // Constructor: create some demo users
     public DefaultAuthService() {
-        // Create an empty HashMap
-        this.userDatabase = new HashMap<>();
-
-        // Fill it with our 3 test users
-        createHardcodedUsers();
-    }
-
-    private void createHardcodedUsers() {
-        // Create Product Owner
-        UserCredentials productOwner = new UserCredentials(
-            "po",           
-            "po123",     
-            UserRole.PRODUCT_OWNER,  
-            "Product Owner" 
-        );
-        userDatabase.put("po", productOwner);
-
-        // Create Scrum Master
-        UserCredentials scrumMaster = new UserCredentials(
-            "sm",          
-            "sm123",       
-            UserRole.SCRUM_MASTER,   
-            "Scrum Master" 
-        );
+        // Scrum Master
+        Credentials scrumCreds = new Credentials("sm", "sm123");
+        User scrumMaster = new User("Scrum Master", scrumCreds, UserRole.SCRUM_MASTER);
         userDatabase.put("sm", scrumMaster);
 
-        // Create Developer
-        UserCredentials developer = new UserCredentials(
-            "dev",          
-            "dev123",       
-            UserRole.DEVELOPER,     
-            "Developer"     
-        );
+        // Developer
+        Credentials devCreds = new Credentials("dev", "dev123");
+        User developer = new User("Developer", devCreds, UserRole.DEVELOPER);
         userDatabase.put("dev", developer);
+
+        // Product Owner
+        Credentials poCreds = new Credentials("po", "po123");
+        User productOwner = new User("Product Owner", poCreds, UserRole.PRODUCT_OWNER);
+        userDatabase.put("po", productOwner);
     }
 
-    @Override
+    /**
+     * Logs in a user by verifying username, password, and role.
+     *
+     * @param role     expected user role
+     * @param username entered username
+     * @param password entered password
+     * @return the logged-in User if successful; null otherwise
+     */
     public User login(UserRole role, String username, String password) {
-        if (!areInputsValid(role, username, password)) {
-            return null;  // Login failed
-        }
-
-       
-        String cleanUsername = username.toLowerCase().trim();
-
-        UserCredentials credentials = userDatabase.get(cleanUsername);
-
-        if (credentials == null) {
-            return null;  // User not found - login failed
-        }
-
-        if (!credentials.getPassword().equals(password)) {
-            return null;  // Wrong password - login failed
-        }
-
-        if (credentials.getRole() != role) {
-            return null;  // Wrong role - login failed
-        }
-
-        User loggedInUser = new User(
-            credentials.getDisplayName(),  // "Product Owner", "Scrum Master", etc.
-            credentials.getRole()          // PRODUCT_OWNER, SCRUM_MASTER, etc.
-        );
-
-        return loggedInUser; 
-    }
-
-  
-    private boolean areInputsValid(UserRole role, String username, String password) {
         if (role == null || username == null || password == null) {
-            return false;
+            return null; // invalid inputs
         }
 
-        if (username.trim().isEmpty()) {
-            return false;
+        // Fetch user from "database"
+        User user = userDatabase.get(username.trim().toLowerCase());
+
+        if (user == null) {
+            System.out.println("User not found!");
+            return null;
         }
 
-        if (password.isEmpty()) {
-            return false;
+        // Validate role and password
+        if (user.getRole() != role) {
+            System.out.println("Wrong role for user!");
+            return null;
         }
 
-        return true;
-    }
-
-    
-    private static class UserCredentials {
-        // Store all the information about one user
-        private final String password;
-        private final UserRole role;
-        private final String displayName;
-
-        public UserCredentials(String username, String password, UserRole role, String displayName) {
-            this.password = password;
-            this.role = role;
-            this.displayName = displayName;
+        if (!user.checkPassword(password)) {
+            System.out.println("Wrong password!");
+            return null;
         }
 
-        public String getPassword() {
-            return password;
-        }
-
-        public UserRole getRole() {
-            return role;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
+        System.out.println("Login successful for " + user.getName() + " (" + role + ")");
+        return user;
     }
 }
