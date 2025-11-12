@@ -2,15 +2,9 @@ package com.scrumsim.model;
 
 import java.util.Objects;
 
-/**
- * Credentials stores authentication-related information.
- * Single Responsibility: this class only deals with username/password logic.
- *
- * NOTE (beginner): In production never store plain text passwords. Use a password hash.
- */
 public class Credentials {
     private final String username;
-    private final String password; // demo only: plain text
+    private final String password; 
 
     public Credentials(String username, String password) {
         this.username = username;
@@ -21,17 +15,12 @@ public class Credentials {
         return username;
     }
 
-    /**
-     * Returns the stored password (demo only). In real systems this would be a hash.
-     */
+    
     public String getPassword() {
         return password;
     }
 
-    /**
-     * Simple check used by AuthService or elsewhere to verify a provided password.
-     * Keeps password-comparison logic inside Credentials (SRP).
-     */
+    
     public boolean checkPassword(String candidate) {
         if (candidate == null) return false;
         return password.equals(candidate);
