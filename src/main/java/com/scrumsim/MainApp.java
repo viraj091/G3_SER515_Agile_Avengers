@@ -5,7 +5,6 @@ import com.scrumsim.navigation.FrameNavigator;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.repository.InMemoryTeamRepository;
 import com.scrumsim.repository.TeamRepository;
-import com.scrumsim.service.AuthService;
 import com.scrumsim.service.DefaultAuthService;
 import com.scrumsim.service.SimpleTeamService;
 import com.scrumsim.service.TeamService;
@@ -63,7 +62,7 @@ public class MainApp implements LoginListener {
 
     private static void showLoginPanel() {
 
-        AuthService authService = new DefaultAuthService();
+        DefaultAuthService authService = new DefaultAuthService();
 
         MainApp mainAppInstance = new MainApp();
 
