@@ -5,4 +5,6 @@ public interface Navigator {
     void showTeamManagement();
 
     void showScrumSimulation(String teamName);
+
+    void showLogin();
 }

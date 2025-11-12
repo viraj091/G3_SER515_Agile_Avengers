@@ -1,5 +1,6 @@
 package com.scrumsim.navigation;
 
+import com.scrumsim.MainApp;
 import com.scrumsim.model.User;
 import com.scrumsim.service.TeamService;
 import com.scrumsim.ui.ScrumSimulationPanel;
@@ -47,6 +48,11 @@ public class FrameNavigator implements Navigator {
     @Override
     public void showScrumSimulation(String teamName) {
         switchPanel(new ScrumSimulationPanel(this, teamName, progressCalculator, currentUser));
+    }
+
+    @Override
+    public void showLogin() {
+        MainApp.logout();
     }
 
     public SessionManager getSessionManager() {
