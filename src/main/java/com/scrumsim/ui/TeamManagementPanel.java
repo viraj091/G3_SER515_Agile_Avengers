@@ -33,6 +33,8 @@ public class TeamManagementPanel extends JPanel {
         add(createHeader(), BorderLayout.NORTH);
 
         add(createTeamList(), BorderLayout.CENTER);
+
+        add(createFooter(), BorderLayout.SOUTH);
     }
 
     private JPanel createHeader() {
@@ -124,6 +126,29 @@ public class TeamManagementPanel extends JPanel {
 
         if (dialog.wasTeamCreated()) {
             refreshUI();
+        }
+    }
+
+    private JPanel createFooter() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footerPanel.setOpaque(false);
+
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutButton.setForeground(Color.BLACK);
+        logoutButton.setFocusPainted(false);
+        logoutButton.addActionListener(e -> onLogout());
+
+        footerPanel.add(logoutButton);
+
+        return footerPanel;
+    }
+
+    private void onLogout() {
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            navigator.showLogin();
         }
     }
 
