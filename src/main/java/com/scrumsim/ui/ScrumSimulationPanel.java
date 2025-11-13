@@ -27,6 +27,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private final StoryCardFactory storyCardFactory;
     private final MemberCardFactory memberCardFactory;
+    private final RolePermissionManager rolePermissionManager;
 
     private static final int SPRINT_GOAL = 30;
 
@@ -37,9 +38,9 @@ public class ScrumSimulationPanel extends JPanel {
         this.currentUser = currentUser;
         this.stories = initializeStories();
 
-        // Updated to use Consumer<Story> callback for edit functionality
         this.storyCardFactory = new StoryCardFactory(this::onEditStory);
         this.memberCardFactory = new MemberCardFactory();
+        this.rolePermissionManager = new RolePermissionManager();
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -65,11 +66,9 @@ public class ScrumSimulationPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
-        // Create top section with Session button on left and title in center
         JPanel topSection = new JPanel(new BorderLayout());
         topSection.setOpaque(false);
 
-        // Session button in top-left
         JButton sessionBtn = new JButton("Session");
         sessionBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         sessionBtn.addActionListener(e -> showSessionDialog());
@@ -77,11 +76,9 @@ public class ScrumSimulationPanel extends JPanel {
         leftPanel.setOpaque(false);
         leftPanel.add(sessionBtn);
 
-        // Title in center
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
-        // My Work and Assign Story buttons in top-right
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rightPanel.setOpaque(false);
 
@@ -90,10 +87,13 @@ public class ScrumSimulationPanel extends JPanel {
         myWorkBtn.addActionListener(e -> showMyWorkDialog());
         rightPanel.add(myWorkBtn);
 
-        JButton assignStoryBtn = new JButton("Assign Story");
-        assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
-        rightPanel.add(assignStoryBtn);
+        if (rolePermissionManager.shouldShowButton(currentUser, "Assign Story")) {
+            JButton assignStoryBtn = new JButton("Assign Story");
+            assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
+            rolePermissionManager.applyButtonPermission(assignStoryBtn, currentUser, "Assign Story");
+            rightPanel.add(assignStoryBtn);
+        }
 
         topSection.add(leftPanel, BorderLayout.WEST);
         topSection.add(title, BorderLayout.CENTER);
@@ -105,15 +105,13 @@ public class ScrumSimulationPanel extends JPanel {
         return header;
     }
 
-    // Shows simple dialog to assign story to developer
     private void showAssignStoryDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         AssignStoryDialog dialog = new AssignStoryDialog(parentFrame, stories);
         dialog.setVisible(true);
-        refreshUI(); // Refresh to show updated assignees
+        refreshUI();
     }
 
-    // Shows dialog with stories assigned to current user
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
@@ -121,18 +119,15 @@ public class ScrumSimulationPanel extends JPanel {
     }
 
     private void showSessionDialog() {
-        // Get session information from navigator
         if (navigator instanceof FrameNavigator) {
             FrameNavigator frameNavigator = (FrameNavigator) navigator;
 
-            // Create dialog to show session status
             JDialog sessionDialog = new JDialog();
             sessionDialog.setTitle("Session Status");
             sessionDialog.setModal(false);
             sessionDialog.setSize(500, 350);
             sessionDialog.setLocationRelativeTo(this);
 
-            // Create session status panel
             SessionStatusPanel sessionPanel = new SessionStatusPanel(
                 frameNavigator.getSessionManager(),
                 frameNavigator.getCurrentSessionId()
@@ -170,7 +165,6 @@ public class ScrumSimulationPanel extends JPanel {
             backlog.add(Box.createVerticalStrut(8));
         }
 
-        // Add More button at the bottom-right of the backlog section
         JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addButtonPanel.setOpaque(false);
         JButton addMoreButton = new JButton("Add More");
@@ -221,7 +215,6 @@ public class ScrumSimulationPanel extends JPanel {
         UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, story);
         dialog.setVisible(true);
 
-        // Refresh the UI if the user clicked Save
         if (dialog.wasSaved()) {
             refreshUI();
         }
@@ -232,7 +225,6 @@ public class ScrumSimulationPanel extends JPanel {
         UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame);
         dialog.setVisible(true);
 
-        // Add the new story if the user clicked Save
         if (dialog.wasSaved()) {
             stories.add(dialog.getStory());
             refreshUI();
