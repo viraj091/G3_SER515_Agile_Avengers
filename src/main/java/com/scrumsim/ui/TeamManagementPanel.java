@@ -16,12 +16,14 @@ public class TeamManagementPanel extends JPanel {
     private final TeamCardFactory cardFactory;
     private final User currentUser;
     private final TeamService teamService;
+    private final RolePermissionManager rolePermissionManager;
 
     public TeamManagementPanel(Navigator navigator, User currentUser, TeamService teamService) {
         this.navigator = navigator;
         this.currentUser = currentUser;
         this.teamService = teamService;
         this.cardFactory = new TeamCardFactory();
+        this.rolePermissionManager = new RolePermissionManager();
 
         initializeUI();
     }
@@ -56,21 +58,26 @@ public class TeamManagementPanel extends JPanel {
 
         headerPanel.add(leftPanel, BorderLayout.WEST);
 
-        if (currentUser.isScrumMaster()) {
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-            buttonPanel.setOpaque(false);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setOpaque(false);
 
+        if (rolePermissionManager.shouldShowButton(currentUser, "Manage Roles")) {
             JButton manageRolesButton = new JButton("Manage Roles");
             manageRolesButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             manageRolesButton.addActionListener(e -> onManageRoles());
+            rolePermissionManager.applyButtonPermission(manageRolesButton, currentUser, "Manage Roles");
+            buttonPanel.add(manageRolesButton);
+        }
 
+        if (rolePermissionManager.shouldShowButton(currentUser, "Create Team")) {
             JButton createTeamButton = new JButton("Create Team");
             createTeamButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             createTeamButton.addActionListener(e -> onCreateTeam());
-
-            buttonPanel.add(manageRolesButton);
+            rolePermissionManager.applyButtonPermission(createTeamButton, currentUser, "Create Team");
             buttonPanel.add(createTeamButton);
+        }
 
+        if (buttonPanel.getComponentCount() > 0) {
             headerPanel.add(buttonPanel, BorderLayout.EAST);
         }
 
