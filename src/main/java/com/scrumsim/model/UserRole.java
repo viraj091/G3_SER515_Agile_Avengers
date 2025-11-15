@@ -1,9 +1,10 @@
 package com.scrumsim.model;
 
 public enum UserRole {
-    SCRUM_MASTER("Scrum Master"),
-    DEVELOPER("Developer"),
-    PRODUCT_OWNER("Product Owner");
+
+    SCRUM_MASTER("Scrum Master"),    
+    DEVELOPER("Developer"),          
+    PRODUCT_OWNER("Product Owner");  
 
     private final String displayName;
 
