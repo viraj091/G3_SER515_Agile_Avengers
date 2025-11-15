@@ -3,8 +3,11 @@ package com.scrumsim.model;
 import java.util.Objects;
 
 public class User {
+
     private final String name;
-    private final Credentials credentials; // contains username + password
+
+    private final Credentials credentials;
+
     private final UserRole role;
 
     public User(String name, Credentials credentials, UserRole role) {
@@ -17,6 +20,7 @@ public class User {
         this(name, null, role);
     }
 
+  
     public String getName() {
         return name;
     }
@@ -24,6 +28,7 @@ public class User {
     public Credentials getCredentials() {
         return credentials;
     }
+
 
     public String getUsername() {
         return credentials == null ? null : credentials.getUsername();
