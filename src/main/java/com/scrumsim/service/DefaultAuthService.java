@@ -1,60 +1,60 @@
 package com.scrumsim.service;
 
-import com.scrumsim.model.Credentials;
 import com.scrumsim.model.User;
 import com.scrumsim.model.UserRole;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultAuthService {
+public class DefaultAuthService implements AuthService {
 
-    
-    private final Map<String, User> userDatabase = new HashMap<>();
+    private final Map<String, String> passwordDatabase;
 
-    
+    private final Map<String, UserRole> roleDatabase;
+
     public DefaultAuthService() {
-       
-        Credentials scrumCreds = new Credentials("sm", "sm123");
-        User scrumMaster = new User("Scrum Master", scrumCreds, UserRole.SCRUM_MASTER);
-        userDatabase.put("sm", scrumMaster);
 
-       
-        Credentials devCreds = new Credentials("dev", "dev123");
-        User developer = new User("Developer", devCreds, UserRole.DEVELOPER);
-        userDatabase.put("dev", developer);
+        passwordDatabase = new HashMap<>();
+        passwordDatabase.put("sm", "sm123");
+        passwordDatabase.put("po", "po123");
+        passwordDatabase.put("dev", "dev123");
+        passwordDatabase.put("qa", "qa123");
 
-        
-        Credentials poCreds = new Credentials("po", "po123");
-        User productOwner = new User("Product Owner", poCreds, UserRole.PRODUCT_OWNER);
-        userDatabase.put("po", productOwner);
+ 
+        roleDatabase = new HashMap<>();
+        roleDatabase.put("sm", UserRole.SCRUM_MASTER);
+        roleDatabase.put("po", UserRole.PRODUCT_OWNER);
+        roleDatabase.put("dev", UserRole.DEVELOPER);
+        roleDatabase.put("qa", UserRole.DEVELOPER); 
     }
 
+    @Override
+    public User authenticate(String username, String password) {
+        if (username == null || password == null) {
+            return null;
+        }
+
+        String normalizedUsername = username.trim().toLowerCase();
+
+        if (!passwordDatabase.containsKey(normalizedUsername)) {
+            return null;  
+        }
+
+        String storedPassword = passwordDatabase.get(normalizedUsername);
+        if (!storedPassword.equals(password)) {
+            return null;
+        }
+
+        UserRole role = roleDatabase.get(normalizedUsername);
+
+        return new User(normalizedUsername, role);
+    }
+
+   
     public User login(UserRole role, String username, String password) {
-        if (role == null || username == null || password == null) {
-            return null; // invalid inputs
-        }
+ 
+        User authenticatedUser = authenticate(username, password);
 
-        
-        User user = userDatabase.get(username.trim().toLowerCase());
-
-        if (user == null) {
-            System.out.println("User not found!");
-            return null;
-        }
-
-        // Validate role and password
-        if (user.getRole() != role) {
-            System.out.println("Wrong role for user!");
-            return null;
-        }
-
-        if (!user.checkPassword(password)) {
-            System.out.println("Wrong password!");
-            return null;
-        }
-
-        System.out.println("Login successful for " + user.getName() + " (" + role + ")");
-        return user;
+        return authenticatedUser;
     }
 }
