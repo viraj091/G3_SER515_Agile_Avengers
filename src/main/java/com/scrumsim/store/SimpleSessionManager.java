@@ -1,71 +1,47 @@
 package com.scrumsim.store;
 
-import java.util.Optional;
-
+import com.scrumsim.model.User;
+import com.scrumsim.model.UserRole;
 
 public class SimpleSessionManager implements SessionManager {
 
-    private final DataStore<String, Session> store;
+    private Session session;
 
-    public SimpleSessionManager(DataStore<String, Session> store) {
-        if (store == null) {
-            throw new IllegalArgumentException("DataStore cannot be null");
+    public SimpleSessionManager() {
+        this.session = null;
+    }
+
+    @Override
+    public void startSession(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
         }
-        this.store = store;
+        this.session = new Session(user, user.getRole());
     }
 
     @Override
-    public Session createSession(String userId, int timeoutMinutes) {
-        Session session = Session.create(userId, timeoutMinutes);
-
-        store.put(session.getSessionId(), session);
-
-        return session;
-    }
-
-    @Override
-    public Optional<Session> getSession(String sessionId) {
-        if (sessionId == null || sessionId.trim().isEmpty()) {
-            return Optional.empty();
+    public User getCurrentUser() {
+        if (session == null) {
+            return null;
         }
-
-        return store.get(sessionId);
+        return session.getCurrentUser();
     }
 
     @Override
-    public boolean isValid(String sessionId) {
-
-        return getSession(sessionId)
-                .map(Session::isValid)
-                .orElse(false);
-    }
-
-    @Override
-    public void invalidate(String sessionId) {
-        if (sessionId == null || sessionId.trim().isEmpty()) {
-            return;
+    public UserRole getCurrentUserRole() {
+        if (session == null) {
+            return null;
         }
-
-        store.remove(sessionId);
+        return session.getRole();
     }
 
     @Override
-    public int cleanupExpired() {
-        int removedCount = 0;
-
-        for (Session session : store.getAllValues()) {
-            
-            if (!session.isValid()) {
-                store.remove(session.getSessionId());
-                removedCount++;
-            }
-        }
-
-        return removedCount;
+    public void clearSession() {
+        this.session = null;
     }
 
     @Override
-    public int getSessionCount() {
-        return store.size();
+    public boolean isLoggedIn() {
+        return session != null && session.getCurrentUser() != null;
     }
 }

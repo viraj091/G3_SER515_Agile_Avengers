@@ -1,18 +1,17 @@
 package com.scrumsim.store;
 
-import java.util.Optional;
+import com.scrumsim.model.User;
+import com.scrumsim.model.UserRole;
 
 public interface SessionManager {
 
-    Session createSession(String userId, int timeoutMinutes);
+    void startSession(User user);
 
-    Optional<Session> getSession(String sessionId);
-    
-    boolean isValid(String sessionId);
+    User getCurrentUser();
 
-    void invalidate(String sessionId);
+    UserRole getCurrentUserRole();
 
-    int cleanupExpired();
+    void clearSession();
 
-    int getSessionCount();
+    boolean isLoggedIn();
 }
