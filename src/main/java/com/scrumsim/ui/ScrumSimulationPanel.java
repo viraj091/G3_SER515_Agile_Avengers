@@ -4,7 +4,6 @@ import com.scrumsim.model.Member;
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.User;
-import com.scrumsim.navigation.FrameNavigator;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
 
@@ -69,12 +68,8 @@ public class ScrumSimulationPanel extends JPanel {
         JPanel topSection = new JPanel(new BorderLayout());
         topSection.setOpaque(false);
 
-        JButton sessionBtn = new JButton("Session");
-        sessionBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sessionBtn.addActionListener(e -> showSessionDialog());
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         leftPanel.setOpaque(false);
-        leftPanel.add(sessionBtn);
 
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -118,25 +113,6 @@ public class ScrumSimulationPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void showSessionDialog() {
-        if (navigator instanceof FrameNavigator) {
-            FrameNavigator frameNavigator = (FrameNavigator) navigator;
-
-            JDialog sessionDialog = new JDialog();
-            sessionDialog.setTitle("Session Status");
-            sessionDialog.setModal(false);
-            sessionDialog.setSize(500, 350);
-            sessionDialog.setLocationRelativeTo(this);
-
-            SessionStatusPanel sessionPanel = new SessionStatusPanel(
-                frameNavigator.getSessionManager(),
-                frameNavigator.getCurrentSessionId()
-            );
-
-            sessionDialog.add(sessionPanel);
-            sessionDialog.setVisible(true);
-        }
-    }
 
     private JSplitPane createContentArea() {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
