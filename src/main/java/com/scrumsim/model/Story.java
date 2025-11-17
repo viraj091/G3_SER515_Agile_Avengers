@@ -1,6 +1,7 @@
 package com.scrumsim.model;
 
 public class Story {
+    private String id;
     private String title;
     private String description;
     private String assignees;
@@ -17,6 +18,14 @@ public class Story {
 
     public Story(String title, StoryStatus status, int points, String assignees) {
         this(title, "", status, points, assignees);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitle() {
