@@ -6,6 +6,10 @@ import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.User;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
+import com.scrumsim.service.BacklogService;
+import com.scrumsim.service.DefaultBacklogService;
+import com.scrumsim.repository.InMemoryStoryRepository;
+import com.scrumsim.repository.StoryRepository;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -27,6 +31,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final StoryCardFactory storyCardFactory;
     private final MemberCardFactory memberCardFactory;
     private final RolePermissionManager rolePermissionManager;
+    private final BacklogService backlogService;
 
     private static final int SPRINT_GOAL = 30;
 
@@ -40,6 +45,9 @@ public class ScrumSimulationPanel extends JPanel {
         this.storyCardFactory = new StoryCardFactory(this::onEditStory);
         this.memberCardFactory = new MemberCardFactory();
         this.rolePermissionManager = new RolePermissionManager();
+
+        StoryRepository storyRepository = new InMemoryStoryRepository();
+        this.backlogService = new DefaultBacklogService(storyRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -70,6 +78,11 @@ public class ScrumSimulationPanel extends JPanel {
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         leftPanel.setOpaque(false);
+
+        JButton backlogBtn = new JButton("Backlog");
+        backlogBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        backlogBtn.addActionListener(e -> showBacklogDialog());
+        leftPanel.add(backlogBtn);
 
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -110,6 +123,13 @@ public class ScrumSimulationPanel extends JPanel {
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        dialog.setVisible(true);
+    }
+
+    private void showBacklogDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        List<Story> backlogStories = backlogService.getBacklogStories(stories);
+        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogStories);
         dialog.setVisible(true);
     }
 
