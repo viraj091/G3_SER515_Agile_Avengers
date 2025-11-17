@@ -127,8 +127,27 @@ public class ScrumSimulationPanel extends JPanel {
     }
 
     private void showBacklogDialog() {
-        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        System.out.println("\n--- SPRINT STORIES (Current Sprint) ---");
+        for (Story story : stories) {
+            System.out.println("ID: " + story.getId() + " | Title: " + story.getTitle() + " | Points: " + story.getPoints());
+        }
+
         List<Story> backlogStories = backlogService.getBacklogStories(stories);
+
+        System.out.println("\n--- BACKLOG STORIES (Not in Sprint) ---");
+        if (backlogStories.isEmpty()) {
+            System.out.println("(No backlog stories)");
+        } else {
+            for (Story story : backlogStories) {
+                System.out.println("ID: " + story.getId() + " | Title: " + story.getTitle() + " | Points: " + story.getPoints());
+            }
+        }
+
+        System.out.println("\n--- SUMMARY ---");
+        System.out.println("Total Sprint Stories: " + stories.size());
+        System.out.println("Total Backlog Stories: " + backlogStories.size());
+
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         BacklogDialog dialog = new BacklogDialog(parentFrame, backlogStories);
         dialog.setVisible(true);
     }
@@ -151,7 +170,7 @@ public class ScrumSimulationPanel extends JPanel {
         backlog.setBorder(new EmptyBorder(10, 10, 10, 10));
         backlog.setOpaque(false);
 
-        JLabel backlogHeader = new JLabel("Product Backlog  " + stories.size() + " User Stories");
+        JLabel backlogHeader = new JLabel(stories.size() + " User Stories");
         backlogHeader.setFont(new Font("Segoe UI", Font.BOLD, 14));
         backlog.add(backlogHeader);
         backlog.add(Box.createVerticalStrut(10));
