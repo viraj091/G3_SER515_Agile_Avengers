@@ -104,7 +104,7 @@ public class LoginPanel extends JPanel {
         User user = authService.login(role, username, password);
 
         if (user != null) {
-            UserSession.getInstance().setCurrentUser(user);
+            UserSession.getInstance().startSession(user);
             loginListener.onLoginSuccess(user);
         } else {
             showError("Invalid credentials. Please try again.");

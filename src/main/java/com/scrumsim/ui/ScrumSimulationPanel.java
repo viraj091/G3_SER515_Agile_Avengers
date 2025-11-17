@@ -4,9 +4,12 @@ import com.scrumsim.model.Member;
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.User;
-import com.scrumsim.navigation.FrameNavigator;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
+import com.scrumsim.service.BacklogService;
+import com.scrumsim.service.DefaultBacklogService;
+import com.scrumsim.repository.InMemoryStoryRepository;
+import com.scrumsim.repository.StoryRepository;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -28,6 +31,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final StoryCardFactory storyCardFactory;
     private final MemberCardFactory memberCardFactory;
     private final RolePermissionManager rolePermissionManager;
+    private final BacklogService backlogService;
 
     private static final int SPRINT_GOAL = 30;
 
@@ -41,6 +45,9 @@ public class ScrumSimulationPanel extends JPanel {
         this.storyCardFactory = new StoryCardFactory(this::onEditStory);
         this.memberCardFactory = new MemberCardFactory();
         this.rolePermissionManager = new RolePermissionManager();
+
+        StoryRepository storyRepository = new InMemoryStoryRepository();
+        this.backlogService = new DefaultBacklogService(storyRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -69,12 +76,13 @@ public class ScrumSimulationPanel extends JPanel {
         JPanel topSection = new JPanel(new BorderLayout());
         topSection.setOpaque(false);
 
-        JButton sessionBtn = new JButton("Session");
-        sessionBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sessionBtn.addActionListener(e -> showSessionDialog());
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         leftPanel.setOpaque(false);
-        leftPanel.add(sessionBtn);
+
+        JButton backlogBtn = new JButton("Backlog");
+        backlogBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        backlogBtn.addActionListener(e -> showBacklogDialog());
+        leftPanel.add(backlogBtn);
 
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -118,25 +126,13 @@ public class ScrumSimulationPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void showSessionDialog() {
-        if (navigator instanceof FrameNavigator) {
-            FrameNavigator frameNavigator = (FrameNavigator) navigator;
-
-            JDialog sessionDialog = new JDialog();
-            sessionDialog.setTitle("Session Status");
-            sessionDialog.setModal(false);
-            sessionDialog.setSize(500, 350);
-            sessionDialog.setLocationRelativeTo(this);
-
-            SessionStatusPanel sessionPanel = new SessionStatusPanel(
-                frameNavigator.getSessionManager(),
-                frameNavigator.getCurrentSessionId()
-            );
-
-            sessionDialog.add(sessionPanel);
-            sessionDialog.setVisible(true);
-        }
+    private void showBacklogDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        List<Story> backlogStories = backlogService.getBacklogStories(stories);
+        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogStories);
+        dialog.setVisible(true);
     }
+
 
     private JSplitPane createContentArea() {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
