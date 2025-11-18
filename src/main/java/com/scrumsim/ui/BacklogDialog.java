@@ -1,6 +1,7 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
+import com.scrumsim.service.BacklogService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -9,11 +10,16 @@ import java.util.List;
 
 public class BacklogDialog extends JDialog {
 
-    private final List<Story> backlogStories;
+    private List<Story> backlogStories;
+    private final BacklogService backlogService;
+    private final List<Story> sprintStories;
+    private JPanel storiesPanel;
 
-    public BacklogDialog(Frame parent, List<Story> backlogStories) {
+    public BacklogDialog(Frame parent, List<Story> backlogStories, BacklogService backlogService, List<Story> sprintStories) {
         super(parent, "Product Backlog", true);
         this.backlogStories = backlogStories;
+        this.backlogService = backlogService;
+        this.sprintStories = sprintStories;
 
         setupUI();
         setSize(600, 400);
@@ -23,9 +29,34 @@ public class BacklogDialog extends JDialog {
     private void setupUI() {
         setLayout(new BorderLayout(10, 10));
 
-        JPanel storiesPanel = new JPanel();
+        storiesPanel = new JPanel();
         storiesPanel.setLayout(new BoxLayout(storiesPanel, BoxLayout.Y_AXIS));
         storiesPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        refreshStoriesPanel();
+
+        JScrollPane scrollPane = new JScrollPane(storiesPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JButton addButton = new JButton("Add");
+        addButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        addButton.addActionListener(e -> onAddStory());
+        buttonPanel.add(addButton);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        closeButton.addActionListener(e -> dispose());
+        buttonPanel.add(closeButton);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private void refreshStoriesPanel() {
+        storiesPanel.removeAll();
 
         if (backlogStories.isEmpty()) {
             JLabel emptyLabel = new JLabel("No stories in backlog");
@@ -40,19 +71,41 @@ public class BacklogDialog extends JDialog {
             }
         }
 
-        JScrollPane scrollPane = new JScrollPane(storiesPanel);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        add(scrollPane, BorderLayout.CENTER);
+        storiesPanel.revalidate();
+        storiesPanel.repaint();
+    }
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+    private void onAddStory() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame);
+        dialog.setVisible(true);
 
-        JButton closeButton = new JButton("Close");
-        closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        closeButton.addActionListener(e -> dispose());
+        if (dialog.wasSaved()) {
+            Story newStory = dialog.getStory();
+            Story savedStory = backlogService.createStory(
+                newStory.getTitle(),
+                newStory.getDescription(),
+                newStory.getPoints()
+            );
 
-        buttonPanel.add(closeButton);
-        add(buttonPanel, BorderLayout.SOUTH);
+            if (savedStory != null) {
+                backlogStories = backlogService.getBacklogStories(sprintStories);
+                refreshStoriesPanel();
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Story added successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to add story. Title may already exist or input is invalid.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
     private JPanel createStoryCard(Story story) {
