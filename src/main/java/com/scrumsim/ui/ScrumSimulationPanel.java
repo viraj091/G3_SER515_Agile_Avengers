@@ -148,7 +148,7 @@ public class ScrumSimulationPanel extends JPanel {
         System.out.println("Total Backlog Stories: " + backlogStories.size());
 
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogStories, backlogService, stories);
+        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogService, stories);
         dialog.setVisible(true);
     }
 

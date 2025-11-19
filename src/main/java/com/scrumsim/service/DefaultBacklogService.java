@@ -8,6 +8,7 @@ import java.util.List;
 
 public class DefaultBacklogService implements BacklogService {
 
+    private static final int MAX_STORY_POINTS = 100;
     private final StoryRepository storyRepository;
 
     public DefaultBacklogService(StoryRepository storyRepository) {
@@ -43,24 +44,29 @@ public class DefaultBacklogService implements BacklogService {
     @Override
     public Story createStory(String title, String description, int points) {
         if (!isValidTitle(title)) {
+            System.err.println("Validation failed: Story title is invalid");
             return null;
         }
 
         if (!isValidDescription(description)) {
+            System.err.println("Validation failed: Story description is invalid");
             return null;
         }
 
         if (!isValidPoints(points)) {
+            System.err.println("Validation failed: Story points must be non-negative");
             return null;
         }
 
         if (storyRepository.existsByTitle(title)) {
+            System.err.println("Validation failed: Story with title '" + title + "' already exists");
             return null;
         }
 
         Story newStory = new Story(title, description, StoryStatus.NEW, points, "");
         storyRepository.save(newStory);
 
+        System.out.println("Successfully created new story: " + title);
         return newStory;
     }
 
@@ -85,7 +91,7 @@ public class DefaultBacklogService implements BacklogService {
     }
 
     private boolean isValidPoints(int points) {
-        if (points < 0) {
+        if (points < 0 || points > MAX_STORY_POINTS) {
             return false;
         }
         return true;
