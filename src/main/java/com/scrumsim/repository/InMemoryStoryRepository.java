@@ -3,6 +3,8 @@ package com.scrumsim.repository;
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class InMemoryStoryRepository implements StoryRepository {
@@ -118,5 +120,80 @@ public class InMemoryStoryRepository implements StoryRepository {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<Story> findAllSortedByPriority() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getPriority));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByOrderIndex() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getOrderIndex));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByRank() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getRank));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByBusinessValue() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getBusinessValue));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByUrgency() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getUrgency));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByEffort() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getEffort));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByPoints() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getPoints));
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByPriorityDescending() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getPriority).reversed());
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllSortedByBusinessValueDescending() {
+        List<Story> sortedStories = new ArrayList<>(stories);
+        Collections.sort(sortedStories, Comparator.comparingInt(Story::getBusinessValue).reversed());
+        return sortedStories;
+    }
+
+    @Override
+    public List<Story> findAllByStatusSortedByPriority(StoryStatus status) {
+        List<Story> filteredStories = new ArrayList<>();
+        for (Story story : stories) {
+            if (story.getStatus() == status) {
+                filteredStories.add(story);
+            }
+        }
+        Collections.sort(filteredStories, Comparator.comparingInt(Story::getPriority));
+        return filteredStories;
     }
 }
