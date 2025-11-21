@@ -123,6 +123,27 @@ public class InMemoryStoryRepository implements StoryRepository {
     }
 
     @Override
+    public void updatePriority(String storyId, int newPriority) {
+        if (storyId == null || storyId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Story ID cannot be null or empty");
+        }
+
+        boolean storyFound = false;
+
+        for (Story story : stories) {
+            if (storyId.equals(story.getId())) {
+                story.setPriority(newPriority);
+                storyFound = true;
+                break;
+            }
+        }
+
+        if (!storyFound) {
+            throw new IllegalArgumentException("Story with ID '" + storyId + "' not found");
+        }
+    }
+
+    @Override
     public List<Story> findAllSortedByPriority() {
         List<Story> sortedStories = new ArrayList<>(stories);
         Collections.sort(sortedStories, Comparator.comparingInt(Story::getPriority));
