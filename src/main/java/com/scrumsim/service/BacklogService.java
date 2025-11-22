@@ -8,4 +8,8 @@ public interface BacklogService {
     List<Story> getBacklogStories(List<Story> sprintStories);
 
     Story createStory(String title, String description, int points);
+
+    void updatePriority(String storyId, int newPriority);
+
+    List<Story> getStoriesSortedByPriority();
 }

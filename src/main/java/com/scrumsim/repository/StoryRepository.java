@@ -14,6 +14,8 @@ public interface StoryRepository {
 
     boolean existsByTitle(String title);
 
+    void updatePriority(String storyId, int newPriority);
+
     List<Story> findAllSortedByPriority();
 
     List<Story> findAllSortedByOrderIndex();

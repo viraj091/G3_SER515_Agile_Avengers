@@ -96,4 +96,55 @@ public class DefaultBacklogService implements BacklogService {
         }
         return true;
     }
+
+    @Override
+    public void updatePriority(String storyId, int newPriority) {
+        if (!isValidStoryId(storyId)) {
+            System.err.println("Validation failed: Story ID is invalid");
+            return;
+        }
+
+        if (!storyExists(storyId)) {
+            System.err.println("Validation failed: Story with ID '" + storyId + "' does not exist");
+            return;
+        }
+
+        if (!isValidPriority(newPriority)) {
+            System.err.println("Validation failed: Priority must be between 1 and 5");
+            return;
+        }
+
+        storyRepository.updatePriority(storyId, newPriority);
+        System.out.println("Successfully updated priority for story: " + storyId);
+    }
+
+    @Override
+    public List<Story> getStoriesSortedByPriority() {
+        return storyRepository.findAllSortedByPriority();
+    }
+
+    private boolean isValidStoryId(String storyId) {
+        if (storyId == null) {
+            return false;
+        }
+        if (storyId.trim().isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean storyExists(String storyId) {
+        Story story = storyRepository.findById(storyId);
+        if (story == null) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isValidPriority(int priority) {
+        if (priority < 1 || priority > 5) {
+            return false;
+        }
+        return true;
+    }
 }
