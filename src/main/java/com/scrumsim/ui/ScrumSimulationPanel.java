@@ -34,6 +34,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final BacklogService backlogService;
 
     private static final int SPRINT_GOAL = 30;
+    private static final StoryRepository sharedStoryRepository = new InMemoryStoryRepository();
 
     public ScrumSimulationPanel(Navigator navigator, String teamName, ProgressCalculator progressCalculator, User currentUser) {
         this.navigator = navigator;
@@ -46,8 +47,7 @@ public class ScrumSimulationPanel extends JPanel {
         this.memberCardFactory = new MemberCardFactory();
         this.rolePermissionManager = new RolePermissionManager();
 
-        StoryRepository storyRepository = new InMemoryStoryRepository();
-        this.backlogService = new DefaultBacklogService(storyRepository);
+        this.backlogService = new DefaultBacklogService(sharedStoryRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
