@@ -49,20 +49,22 @@ public class BacklogDialog extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JButton addStoryButton = new JButton("Add Story");
-        addStoryButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        addStoryButton.addActionListener(e -> handleAddStory());
+        if (isProductOwner()) {
+            JButton addStoryButton = new JButton("Add Story");
+            addStoryButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            addStoryButton.addActionListener(e -> handleAddStory());
+            buttonPanel.add(addStoryButton);
 
-        JButton testButton = new JButton("Run Tests");
-        testButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        testButton.addActionListener(e -> runPriorityTests());
+            JButton testButton = new JButton("Run Tests");
+            testButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            testButton.addActionListener(e -> runPriorityTests());
+            buttonPanel.add(testButton);
+        }
 
         JButton closeButton = new JButton("Close");
         closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         closeButton.addActionListener(e -> dispose());
 
-        buttonPanel.add(addStoryButton);
-        buttonPanel.add(testButton);
         buttonPanel.add(closeButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
