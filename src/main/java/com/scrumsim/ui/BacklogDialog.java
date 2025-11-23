@@ -2,6 +2,7 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
 import com.scrumsim.service.BacklogService;
+import com.scrumsim.store.UserSession;
 import com.scrumsim.ui.backlog.BacklogDialogController;
 import com.scrumsim.ui.backlog.StoryPriorityControl;
 
@@ -84,12 +85,15 @@ public class BacklogDialog extends JDialog {
         pointsLabel.setForeground(new Color(100, 100, 100));
         infoPanel.add(pointsLabel);
 
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        // Show priority controls ONLY for Product Owner
+        if (isProductOwner()) {
+            infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
-        StoryPriorityControl priorityControl = new StoryPriorityControl(story.getPriority());
-        priorityControl.addUpButtonListener(e -> controller.handleIncreasePriority(story));
-        priorityControl.addDownButtonListener(e -> controller.handleDecreasePriority(story));
-        infoPanel.add(priorityControl);
+            StoryPriorityControl priorityControl = new StoryPriorityControl(story.getPriority());
+            priorityControl.addUpButtonListener(e -> controller.handleIncreasePriority(story));
+            priorityControl.addDownButtonListener(e -> controller.handleDecreasePriority(story));
+            infoPanel.add(priorityControl);
+        }
 
         if (story.getDescription() != null && !story.getDescription().isEmpty()) {
             infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -188,5 +192,11 @@ public class BacklogDialog extends JDialog {
     private void refreshBacklogList() {
         backlogStories = backlogService.getBacklogStories(sprintStories);
         renderStories();
+    }
+
+    
+    private boolean isProductOwner() {
+        return UserSession.getInstance().getCurrentUser() != null
+            && UserSession.getInstance().getCurrentUser().isProductOwner();
     }
 }
