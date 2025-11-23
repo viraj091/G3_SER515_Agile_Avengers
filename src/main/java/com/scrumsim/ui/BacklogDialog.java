@@ -49,15 +49,22 @@ public class BacklogDialog extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JButton addStoryButton = new JButton("Add Story");
-        addStoryButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        addStoryButton.addActionListener(e -> handleAddStory());
+        if (isProductOwner()) {
+            JButton addStoryButton = new JButton("Add Story");
+            addStoryButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            addStoryButton.addActionListener(e -> handleAddStory());
+            buttonPanel.add(addStoryButton);
+
+            JButton testButton = new JButton("Run Tests");
+            testButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            testButton.addActionListener(e -> runPriorityTests());
+            buttonPanel.add(testButton);
+        }
 
         JButton closeButton = new JButton("Close");
         closeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         closeButton.addActionListener(e -> dispose());
 
-        buttonPanel.add(addStoryButton);
         buttonPanel.add(closeButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
@@ -194,9 +201,66 @@ public class BacklogDialog extends JDialog {
         renderStories();
     }
 
-    
+
     private boolean isProductOwner() {
         return UserSession.getInstance().getCurrentUser() != null
             && UserSession.getInstance().getCurrentUser().isProductOwner();
+    }
+
+    private void runPriorityTests() {
+        boolean sortingPassed = testPrioritySorting();
+        boolean permissionPassed = testRolePermissions();
+
+        String message = "Sorting Test: " + (sortingPassed ? "PASSED" : "FAILED") + "\n" +
+                        "Permission Test: " + (permissionPassed ? "PASSED" : "FAILED");
+
+        JOptionPane.showMessageDialog(this, message, "Test Results",
+            (sortingPassed && permissionPassed) ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+    }
+
+    private boolean testPrioritySorting() {
+        List<Story> sortedStories = backlogService.getStoriesSortedByPriority();
+
+        if (sortedStories.size() < 2) {
+            return true;
+        }
+
+        for (int i = 0; i < sortedStories.size() - 1; i++) {
+            int currentPriority = sortedStories.get(i).getPriority();
+            int nextPriority = sortedStories.get(i + 1).getPriority();
+
+            if (currentPriority > nextPriority) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean testRolePermissions() {
+        boolean isOwner = isProductOwner();
+        boolean controlsExist = false;
+
+        if (!backlogStories.isEmpty()) {
+            Story firstStory = backlogStories.get(0);
+            JPanel testCard = createStoryCard(firstStory);
+            controlsExist = hasStoryPriorityControl(testCard);
+        }
+
+        return isOwner == controlsExist;
+    }
+
+    private boolean hasStoryPriorityControl(JPanel card) {
+        for (Component comp : card.getComponents()) {
+            if (comp instanceof JPanel) {
+                JPanel panel = (JPanel) comp;
+                for (Component inner : panel.getComponents()) {
+                    if (inner instanceof StoryPriorityControl) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
