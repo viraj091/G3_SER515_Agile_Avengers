@@ -33,6 +33,25 @@ If you are using Eclipse
 2. Select the project folder
 3. Right-click on `MainApp.java` > Run As > Java Application
 
+
+You can log in as Product Owner, Scrum Master and Devloper. 
+Use Below combinations of User Names and Passwords - 
+
+Scrum Master - 
+User Name - sm
+Password - sm123
+
+Product Owner -
+User Name - po
+Password - po123
+
+Developer -
+User Name - dev
+Password - dev123
+
+User Name - qa
+Password - qa123
+
 Below is the Project Structure that our team will be using - 
 
 src/main/java/com/scrumsim/
