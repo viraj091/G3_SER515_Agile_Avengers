@@ -2,6 +2,8 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
 import com.scrumsim.service.BacklogService;
+import com.scrumsim.ui.backlog.BacklogDialogController;
+import com.scrumsim.ui.backlog.StoryPriorityControl;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,6 +13,7 @@ import java.util.List;
 public class BacklogDialog extends JDialog {
 
     private final BacklogService backlogService;
+    private final BacklogDialogController controller;
     private final List<Story> sprintStories;
     private List<Story> backlogStories;
     private JPanel storiesPanel;
@@ -21,6 +24,8 @@ public class BacklogDialog extends JDialog {
         this.backlogService = backlogService;
         this.sprintStories = sprintStories;
         this.backlogStories = backlogService.getBacklogStories(sprintStories);
+
+        this.controller = new BacklogDialogController(backlogService, this::refreshBacklogList);
 
         setupUI();
         setSize(600, 400);
@@ -78,6 +83,13 @@ public class BacklogDialog extends JDialog {
         pointsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         pointsLabel.setForeground(new Color(100, 100, 100));
         infoPanel.add(pointsLabel);
+
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+
+        StoryPriorityControl priorityControl = new StoryPriorityControl(story.getPriority());
+        priorityControl.addUpButtonListener(e -> controller.handleIncreasePriority(story));
+        priorityControl.addDownButtonListener(e -> controller.handleDecreasePriority(story));
+        infoPanel.add(priorityControl);
 
         if (story.getDescription() != null && !story.getDescription().isEmpty()) {
             infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
