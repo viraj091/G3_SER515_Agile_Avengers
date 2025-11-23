@@ -147,4 +147,26 @@ public class DefaultBacklogService implements BacklogService {
         }
         return true;
     }
+
+    @Override
+    public void increasePriority(String storyId) {
+        Story story = storyRepository.findById(storyId);
+        int currentPriority = story.getPriority();
+        int newPriority = currentPriority + 1;
+
+        if (newPriority <= 5) {
+            storyRepository.updatePriority(storyId, newPriority);
+        }
+    }
+
+    @Override
+    public void decreasePriority(String storyId) {
+        Story story = storyRepository.findById(storyId);
+        int currentPriority = story.getPriority();
+        int newPriority = currentPriority - 1;
+
+        if (newPriority >= 1) {
+            storyRepository.updatePriority(storyId, newPriority);
+        }
+    }
 }
