@@ -8,8 +8,14 @@ import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
 import com.scrumsim.service.BacklogService;
 import com.scrumsim.service.DefaultBacklogService;
+import com.scrumsim.service.StakeholderInputService;
+import com.scrumsim.service.DefaultStakeholderInputService;
+import com.scrumsim.service.StakeholderFeedbackService;
+import com.scrumsim.service.DefaultStakeholderFeedbackService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
+import com.scrumsim.repository.StakeholderFeedbackRepository;
+import com.scrumsim.repository.InMemoryStakeholderFeedbackRepository;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -95,6 +101,11 @@ public class ScrumSimulationPanel extends JPanel {
         myWorkBtn.addActionListener(e -> showMyWorkDialog());
         rightPanel.add(myWorkBtn);
 
+        JButton giveInputBtn = new JButton("Give Input");
+        giveInputBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        giveInputBtn.addActionListener(e -> showStakeholderInputDialog());
+        rightPanel.add(giveInputBtn);
+
         if (rolePermissionManager.shouldShowButton(currentUser, "Assign Story")) {
             JButton assignStoryBtn = new JButton("Assign Story");
             assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -123,6 +134,15 @@ public class ScrumSimulationPanel extends JPanel {
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        dialog.setVisible(true);
+    }
+
+    private void showStakeholderInputDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        StakeholderFeedbackRepository repository = new InMemoryStakeholderFeedbackRepository();
+        StakeholderFeedbackService feedbackService = new DefaultStakeholderFeedbackService(repository);
+        StakeholderInputService inputService = new DefaultStakeholderInputService(feedbackService);
+        StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, currentUser.getName(), stories);
         dialog.setVisible(true);
     }
 
