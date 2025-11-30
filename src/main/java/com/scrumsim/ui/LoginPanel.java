@@ -1,11 +1,11 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.User;
-import com.scrumsim.model.UserRole;
 import com.scrumsim.service.DefaultAuthService;
 import com.scrumsim.store.UserSession;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 
 public class LoginPanel extends JPanel {
@@ -13,10 +13,10 @@ public class LoginPanel extends JPanel {
     private final DefaultAuthService authService;
     private final LoginListener loginListener;
 
-    private JComboBox<String> roleComboBox;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    private JLabel errorLabel;
 
     public LoginPanel(DefaultAuthService authService2, LoginListener loginListener) {
         this.authService = authService2;
@@ -48,14 +48,6 @@ public class LoginPanel extends JPanel {
 
         gbc.gridwidth = 1;
         gbc.gridy = 2;
-        add(new JLabel("Role:"), gbc);
-
-        roleComboBox = new JComboBox<>(new String[]{"Product Owner", "Scrum Master", "Developer"});
-        gbc.gridx = 1;
-        add(roleComboBox, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
         add(new JLabel("Username:"), gbc);
 
         usernameField = new JTextField(15);
@@ -63,21 +55,30 @@ public class LoginPanel extends JPanel {
         add(usernameField, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 3;
         add(new JLabel("Password:"), gbc);
 
         passwordField = new JPasswordField(15);
         gbc.gridx = 1;
         add(passwordField, gbc);
 
+        errorLabel = new JLabel("");
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        add(errorLabel, gbc);
+
         loginButton = new JButton("LOGIN");
         loginButton.setBackground(new Color(0, 102, 204));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
         loginButton.setFocusPainted(false);
-        gbc.gridx = 0;
+        loginButton.setBorder(new LineBorder(new Color(0, 80, 160), 2, true));
+        loginButton.setPreferredSize(new Dimension(200, 40));
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         gbc.gridy = 5;
-        gbc.gridwidth = 2;
         add(loginButton, gbc);
 
         loginButton.addActionListener(e -> handleLogin());
@@ -88,43 +89,26 @@ public class LoginPanel extends JPanel {
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
-        String roleString = (String) roleComboBox.getSelectedItem();
+
+        errorLabel.setText("");
 
         if (username.isEmpty()) {
-            showError("Please enter username");
+            errorLabel.setText("Please enter username");
             return;
         }
 
         if (password.isEmpty()) {
-            showError("Please enter password");
+            errorLabel.setText("Please enter password");
             return;
         }
 
-        UserRole role = convertToRole(roleString);
-        User user = authService.login(role, username, password);
+        User user = authService.authenticate(username, password);
 
         if (user != null) {
             UserSession.getInstance().startSession(user);
             loginListener.onLoginSuccess(user);
         } else {
-            showError("Invalid credentials. Please try again.");
+            errorLabel.setText("Invalid credentials. Please try again.");
         }
-    }
-
-    private UserRole convertToRole(String roleString) {
-        switch (roleString) {
-            case "Product Owner":
-                return UserRole.PRODUCT_OWNER;
-            case "Scrum Master":
-                return UserRole.SCRUM_MASTER;
-            case "Developer":
-                return UserRole.DEVELOPER;
-            default:
-                return UserRole.DEVELOPER;
-        }
-    }
-
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Login Error", JOptionPane.ERROR_MESSAGE);
     }
 }
