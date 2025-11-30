@@ -19,12 +19,16 @@ public class BacklogDialog extends JDialog {
     private List<Story> backlogStories;
     private JPanel storiesPanel;
     private JScrollPane scrollPane;
+    private final StorySelectionManager selectionManager;
+    private boolean multiSelectMode;
 
     public BacklogDialog(Frame parent, BacklogService backlogService, List<Story> sprintStories) {
         super(parent, "Product Backlog", true);
         this.backlogService = backlogService;
         this.sprintStories = sprintStories;
         this.backlogStories = backlogService.getBacklogStories(sprintStories);
+        this.selectionManager = new StorySelectionManager();
+        this.multiSelectMode = false;
 
         this.controller = new BacklogDialogController(backlogService, this::refreshBacklogList);
 
@@ -48,6 +52,11 @@ public class BacklogDialog extends JDialog {
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JButton multiSelectButton = new JButton("Multi-Select");
+        multiSelectButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        multiSelectButton.addActionListener(e -> toggleMultiSelectMode(multiSelectButton));
+        buttonPanel.add(multiSelectButton);
 
         if (isProductOwner()) {
             JButton addStoryButton = new JButton("Add Story");
@@ -76,6 +85,18 @@ public class BacklogDialog extends JDialog {
             new EmptyBorder(10, 10, 10, 10)
         ));
         card.setBackground(Color.WHITE);
+
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setBackground(Color.WHITE);
+
+        if (multiSelectMode) {
+            JCheckBox selectCheckbox = new JCheckBox();
+            selectCheckbox.setSelected(selectionManager.isSelected(story.getId()));
+            selectCheckbox.addActionListener(e -> {
+                selectionManager.toggleSelect(story.getId());
+            });
+            leftPanel.add(selectCheckbox, BorderLayout.WEST);
+        }
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -110,9 +131,21 @@ public class BacklogDialog extends JDialog {
             infoPanel.add(descLabel);
         }
 
-        card.add(infoPanel, BorderLayout.CENTER);
+        leftPanel.add(infoPanel, BorderLayout.CENTER);
+        card.add(leftPanel, BorderLayout.CENTER);
 
         return card;
+    }
+
+    private void toggleMultiSelectMode(JButton button) {
+        multiSelectMode = !multiSelectMode;
+        if (multiSelectMode) {
+            button.setText("Exit Multi-Select");
+        } else {
+            button.setText("Multi-Select");
+            selectionManager.clearSelection();
+        }
+        renderStories();
     }
 
     private void renderStories() {
