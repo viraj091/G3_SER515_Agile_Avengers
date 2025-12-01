@@ -222,10 +222,19 @@ public class ScrumSimulationPanel extends JPanel {
         return membersPanel;
     }
 
-    private JButton createFooter() {
-        JButton backBtn = new JButton(" Back to Team Management");
+    private JPanel createFooter() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footerPanel.setOpaque(false);
+
+        JButton backBtn = new JButton("Back to Team Management");
         backBtn.addActionListener(e -> navigator.showTeamManagement());
-        return backBtn;
+        footerPanel.add(backBtn);
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.addActionListener(e -> navigator.showLogin());
+        footerPanel.add(logoutBtn);
+
+        return footerPanel;
     }
 
     private void updateProgress() {
