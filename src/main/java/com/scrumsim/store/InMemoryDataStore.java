@@ -1,17 +1,21 @@
 package com.scrumsim.store;
 
+import com.scrumsim.model.CommunicationEntry;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class InMemoryDataStore<K, V> implements DataStore<K, V> {
 
-    // ConcurrentHashMap ensures thread-safe operations without locking the entire map
     private final ConcurrentHashMap<K, V> storage;
+    private final List<CommunicationEntry> communications;
 
     public InMemoryDataStore() {
         this.storage = new ConcurrentHashMap<>();
+        this.communications = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -56,13 +60,22 @@ public class InMemoryDataStore<K, V> implements DataStore<K, V> {
 
     @Override
     public Collection<V> getAllValues() {
-        // Return a snapshot of values to avoid concurrent modification issues
-        // Creating a new ArrayList ensures the caller can iterate safely even if the underlying storage changes
         return new ArrayList<>(storage.values());
     }
 
     @Override
     public void clear() {
         storage.clear();
+    }
+
+    public void addCommunication(CommunicationEntry entry) {
+        if (entry == null) {
+            throw new IllegalArgumentException("Communication entry cannot be null");
+        }
+        communications.add(entry);
+    }
+
+    public List<CommunicationEntry> getAllCommunications() {
+        return new ArrayList<>(communications);
     }
 }
