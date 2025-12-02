@@ -2,6 +2,7 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
 import com.scrumsim.service.StakeholderInputService;
+import com.scrumsim.service.CommunicationService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,6 +11,7 @@ import java.util.List;
 public class StakeholderInputDialog extends JDialog {
 
     private final StakeholderInputService inputService;
+    private final CommunicationService communicationService;
     private final String stakeholderName;
     private final List<Story> stories;
 
@@ -17,8 +19,13 @@ public class StakeholderInputDialog extends JDialog {
     private JTextArea messageArea;
 
     public StakeholderInputDialog(Frame parent, StakeholderInputService inputService, String stakeholderName, List<Story> stories) {
+        this(parent, inputService, null, stakeholderName, stories);
+    }
+
+    public StakeholderInputDialog(Frame parent, StakeholderInputService inputService, CommunicationService communicationService, String stakeholderName, List<Story> stories) {
         super(parent, "Give Input on User Story", true);
         this.inputService = inputService;
+        this.communicationService = communicationService;
         this.stakeholderName = stakeholderName;
         this.stories = stories;
         initializeUI();
@@ -106,6 +113,10 @@ public class StakeholderInputDialog extends JDialog {
 
         Story selectedStory = stories.get(storyDropdown.getSelectedIndex());
         inputService.submitInput(selectedStory.getId(), stakeholderName, message);
+
+        if (communicationService != null) {
+            communicationService.record(stakeholderName, message);
+        }
 
         JOptionPane.showMessageDialog(this,
             "Your input has been submitted successfully!",
