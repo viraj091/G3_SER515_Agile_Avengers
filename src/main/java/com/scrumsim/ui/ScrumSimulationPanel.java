@@ -14,10 +14,13 @@ import com.scrumsim.service.StakeholderFeedbackService;
 import com.scrumsim.service.DefaultStakeholderFeedbackService;
 import com.scrumsim.service.BusinessValueService;
 import com.scrumsim.service.DefaultBusinessValueService;
+import com.scrumsim.service.CommunicationService;
+import com.scrumsim.service.DefaultCommunicationService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
 import com.scrumsim.repository.InMemoryStakeholderFeedbackRepository;
+import com.scrumsim.store.InMemoryDataStore;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -46,6 +49,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private static final int SPRINT_GOAL = 30;
     private static final StoryRepository sharedStoryRepository = new InMemoryStoryRepository();
+    private static final InMemoryDataStore<String, String> sharedDataStore = new InMemoryDataStore<>();
 
     public ScrumSimulationPanel(Navigator navigator, String teamName, ProgressCalculator progressCalculator, User currentUser) {
         this.navigator = navigator;
@@ -135,6 +139,13 @@ public class ScrumSimulationPanel extends JPanel {
             rightPanel.add(reviewBVBtn);
         }
 
+        if (currentUser.isProductOwner()) {
+            JButton viewCommBtn = new JButton("View Communication");
+            viewCommBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            viewCommBtn.addActionListener(e -> showCommunicationDialog());
+            rightPanel.add(viewCommBtn);
+        }
+
         topSection.add(leftPanel, BorderLayout.WEST);
         topSection.add(title, BorderLayout.CENTER);
         topSection.add(rightPanel, BorderLayout.EAST);
@@ -163,7 +174,8 @@ public class ScrumSimulationPanel extends JPanel {
         StakeholderFeedbackRepository repository = new InMemoryStakeholderFeedbackRepository();
         StakeholderFeedbackService feedbackService = new DefaultStakeholderFeedbackService(repository);
         StakeholderInputService inputService = new DefaultStakeholderInputService(feedbackService);
-        StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, currentUser.getName(), stories);
+        CommunicationService commService = new DefaultCommunicationService(sharedDataStore);
+        StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, commService, currentUser.getName(), stories);
         dialog.setVisible(true);
     }
 
@@ -172,6 +184,13 @@ public class ScrumSimulationPanel extends JPanel {
         ReviewBusinessValueDialog dialog = new ReviewBusinessValueDialog(parentFrame, stories, businessValueService);
         dialog.setVisible(true);
         refreshUI();
+    }
+
+    private void showCommunicationDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        CommunicationService commService = new DefaultCommunicationService(sharedDataStore);
+        CommunicationDialog dialog = new CommunicationDialog(parentFrame, commService);
+        dialog.setVisible(true);
     }
 
     private void showBacklogDialog() {
