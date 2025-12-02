@@ -12,6 +12,8 @@ import com.scrumsim.service.StakeholderInputService;
 import com.scrumsim.service.DefaultStakeholderInputService;
 import com.scrumsim.service.StakeholderFeedbackService;
 import com.scrumsim.service.DefaultStakeholderFeedbackService;
+import com.scrumsim.service.BusinessValueService;
+import com.scrumsim.service.DefaultBusinessValueService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -38,6 +40,9 @@ public class ScrumSimulationPanel extends JPanel {
     private final MemberCardFactory memberCardFactory;
     private final RolePermissionManager rolePermissionManager;
     private final BacklogService backlogService;
+    private final BusinessValueService businessValueService;
+    private final StorySelectionManager selectionManager;
+    private boolean multiSelectMode;
 
     private static final int SPRINT_GOAL = 30;
     private static final StoryRepository sharedStoryRepository = new InMemoryStoryRepository();
@@ -52,8 +57,11 @@ public class ScrumSimulationPanel extends JPanel {
         this.storyCardFactory = new StoryCardFactory(this::onEditStory);
         this.memberCardFactory = new MemberCardFactory();
         this.rolePermissionManager = new RolePermissionManager();
+        this.selectionManager = new StorySelectionManager();
+        this.multiSelectMode = false;
 
         this.backlogService = new DefaultBacklogService(sharedStoryRepository);
+        this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -90,6 +98,11 @@ public class ScrumSimulationPanel extends JPanel {
         backlogBtn.addActionListener(e -> showBacklogDialog());
         leftPanel.add(backlogBtn);
 
+        JButton multiSelectBtn = new JButton("Multi-Select");
+        multiSelectBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        multiSelectBtn.addActionListener(e -> toggleMultiSelectMode(multiSelectBtn));
+        leftPanel.add(multiSelectBtn);
+
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
@@ -112,6 +125,14 @@ public class ScrumSimulationPanel extends JPanel {
             assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
             rolePermissionManager.applyButtonPermission(assignStoryBtn, currentUser, "Assign Story");
             rightPanel.add(assignStoryBtn);
+        }
+
+        if (rolePermissionManager.shouldShowButton(currentUser, "Review Business Value")) {
+            JButton reviewBVBtn = new JButton("Review Business Value");
+            reviewBVBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            reviewBVBtn.addActionListener(e -> showReviewBusinessValueDialog());
+            rolePermissionManager.applyButtonPermission(reviewBVBtn, currentUser, "Review Business Value");
+            rightPanel.add(reviewBVBtn);
         }
 
         topSection.add(leftPanel, BorderLayout.WEST);
@@ -144,6 +165,13 @@ public class ScrumSimulationPanel extends JPanel {
         StakeholderInputService inputService = new DefaultStakeholderInputService(feedbackService);
         StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, currentUser.getName(), stories);
         dialog.setVisible(true);
+    }
+
+    private void showReviewBusinessValueDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        ReviewBusinessValueDialog dialog = new ReviewBusinessValueDialog(parentFrame, stories, businessValueService);
+        dialog.setVisible(true);
+        refreshUI();
     }
 
     private void showBacklogDialog() {
@@ -196,7 +224,7 @@ public class ScrumSimulationPanel extends JPanel {
         backlog.add(Box.createVerticalStrut(10));
 
         for (Story story : stories) {
-            backlog.add(storyCardFactory.createStoryCard(story));
+            backlog.add(createStoryCardWithCheckbox(story));
             backlog.add(Box.createVerticalStrut(8));
         }
 
@@ -233,10 +261,19 @@ public class ScrumSimulationPanel extends JPanel {
         return membersPanel;
     }
 
-    private JButton createFooter() {
-        JButton backBtn = new JButton(" Back to Team Management");
+    private JPanel createFooter() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footerPanel.setOpaque(false);
+
+        JButton backBtn = new JButton("Back to Team Management");
         backBtn.addActionListener(e -> navigator.showTeamManagement());
-        return backBtn;
+        footerPanel.add(backBtn);
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.addActionListener(e -> navigator.showLogin());
+        footerPanel.add(logoutBtn);
+
+        return footerPanel;
     }
 
     private void updateProgress() {
@@ -264,6 +301,36 @@ public class ScrumSimulationPanel extends JPanel {
             stories.add(dialog.getStory());
             refreshUI();
         }
+    }
+
+    private JPanel createStoryCardWithCheckbox(Story story) {
+        if (!multiSelectMode) {
+            return storyCardFactory.createStoryCard(story);
+        }
+
+        JPanel wrapper = new JPanel(new BorderLayout(5, 0));
+        wrapper.setOpaque(false);
+
+        JCheckBox checkbox = new JCheckBox();
+        checkbox.setOpaque(false);
+        checkbox.setSelected(selectionManager.isSelected(story.getId()));
+        checkbox.addActionListener(e -> selectionManager.toggleSelect(story.getId()));
+
+        wrapper.add(checkbox, BorderLayout.WEST);
+        wrapper.add(storyCardFactory.createStoryCard(story), BorderLayout.CENTER);
+
+        return wrapper;
+    }
+
+    private void toggleMultiSelectMode(JButton button) {
+        multiSelectMode = !multiSelectMode;
+        if (multiSelectMode) {
+            button.setText("Exit Multi-Select");
+        } else {
+            button.setText("Multi-Select");
+            selectionManager.clearSelection();
+        }
+        refreshUI();
     }
 
     private void refreshUI() {

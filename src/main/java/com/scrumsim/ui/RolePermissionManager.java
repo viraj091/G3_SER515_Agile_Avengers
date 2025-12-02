@@ -28,6 +28,10 @@ public class RolePermissionManager {
         return user.getRole() == UserRole.SCRUM_MASTER;
     }
 
+    public boolean canReviewBusinessValue(User user) {
+        return user.getRole() == UserRole.PRODUCT_OWNER;
+    }
+
     public void applyButtonPermission(JButton button, User user, String featureName) {
         boolean hasPermission = false;
 
@@ -37,12 +41,14 @@ public class RolePermissionManager {
             hasPermission = canManageRoles(user);
         } else if (featureName.equals("Assign Story")) {
             hasPermission = canAssignStory(user);
+        } else if (featureName.equals("Review Business Value")) {
+            hasPermission = canReviewBusinessValue(user);
         }
 
         if (!hasPermission) {
             button.setVisible(false);
             button.setEnabled(false);
-            button.setToolTipText("Only Scrum Masters can access this feature");
+            button.setToolTipText("You do not have permission to access this feature");
         } else {
             button.setVisible(true);
             button.setEnabled(true);
@@ -57,6 +63,8 @@ public class RolePermissionManager {
             return canManageRoles(user);
         } else if (featureName.equals("Assign Story")) {
             return canAssignStory(user);
+        } else if (featureName.equals("Review Business Value")) {
+            return canReviewBusinessValue(user);
         }
         return true;
     }
