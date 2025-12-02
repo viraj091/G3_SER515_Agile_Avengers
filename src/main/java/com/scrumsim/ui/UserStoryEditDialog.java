@@ -14,7 +14,7 @@ public class UserStoryEditDialog extends JDialog {
 
     private JTextField nameField;
     private JTextArea descriptionArea;
-    private JComboBox<String> statusDropdown;
+    private JComboBox<StoryStatus> statusDropdown;
     private JSpinner pointsSpinner;
     private JTextField assigneesField;
 
@@ -30,7 +30,7 @@ public class UserStoryEditDialog extends JDialog {
 
     public UserStoryEditDialog(Frame parent) {
         super(parent, "Create User Story", true);
-        this.story = new Story("", "", StoryStatus.NEW, 0, "");
+        this.story = new Story("", "", StoryStatus.TO_DO, 0, "");
         this.isCreateMode = true;
         initializeUI();
     }
@@ -95,11 +95,7 @@ public class UserStoryEditDialog extends JDialog {
 
         gbc.gridx = 1;
         gbc.weightx = 1.0;
-        String[] statuses = new String[StoryStatus.values().length];
-        for (int i = 0; i < StoryStatus.values().length; i++) {
-            statuses[i] = StoryStatus.values()[i].getDisplayName();
-        }
-        statusDropdown = new JComboBox<>(statuses);
+        statusDropdown = new JComboBox<>(StoryStatus.values());
         statusDropdown.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         formPanel.add(statusDropdown, gbc);
 
@@ -154,7 +150,7 @@ public class UserStoryEditDialog extends JDialog {
         if (!isCreateMode) {
             nameField.setText(story.getTitle());
             descriptionArea.setText(story.getDescription());
-            statusDropdown.setSelectedItem(story.getStatus().getDisplayName());
+            statusDropdown.setSelectedItem(story.getStatus());
             pointsSpinner.setValue(story.getPoints());
             assigneesField.setText(story.getAssignees());
         }
@@ -173,7 +169,7 @@ public class UserStoryEditDialog extends JDialog {
         // Update story object with form values
         story.setTitle(name);
         story.setDescription(descriptionArea.getText().trim());
-        story.setStatus(StoryStatus.fromDisplayName((String) statusDropdown.getSelectedItem()));
+        story.setStatus((StoryStatus) statusDropdown.getSelectedItem());
         story.setPoints((Integer) pointsSpinner.getValue());
         story.setAssignees(assigneesField.getText().trim());
 
