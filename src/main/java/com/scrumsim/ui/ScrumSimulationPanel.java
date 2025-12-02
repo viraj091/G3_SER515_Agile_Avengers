@@ -12,6 +12,8 @@ import com.scrumsim.service.StakeholderInputService;
 import com.scrumsim.service.DefaultStakeholderInputService;
 import com.scrumsim.service.StakeholderFeedbackService;
 import com.scrumsim.service.DefaultStakeholderFeedbackService;
+import com.scrumsim.service.BusinessValueService;
+import com.scrumsim.service.DefaultBusinessValueService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -38,6 +40,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final MemberCardFactory memberCardFactory;
     private final RolePermissionManager rolePermissionManager;
     private final BacklogService backlogService;
+    private final BusinessValueService businessValueService;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
@@ -58,6 +61,7 @@ public class ScrumSimulationPanel extends JPanel {
         this.multiSelectMode = false;
 
         this.backlogService = new DefaultBacklogService(sharedStoryRepository);
+        this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -123,6 +127,14 @@ public class ScrumSimulationPanel extends JPanel {
             rightPanel.add(assignStoryBtn);
         }
 
+        if (rolePermissionManager.shouldShowButton(currentUser, "Review Business Value")) {
+            JButton reviewBVBtn = new JButton("Review Business Value");
+            reviewBVBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            reviewBVBtn.addActionListener(e -> showReviewBusinessValueDialog());
+            rolePermissionManager.applyButtonPermission(reviewBVBtn, currentUser, "Review Business Value");
+            rightPanel.add(reviewBVBtn);
+        }
+
         topSection.add(leftPanel, BorderLayout.WEST);
         topSection.add(title, BorderLayout.CENTER);
         topSection.add(rightPanel, BorderLayout.EAST);
@@ -153,6 +165,13 @@ public class ScrumSimulationPanel extends JPanel {
         StakeholderInputService inputService = new DefaultStakeholderInputService(feedbackService);
         StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, currentUser.getName(), stories);
         dialog.setVisible(true);
+    }
+
+    private void showReviewBusinessValueDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        ReviewBusinessValueDialog dialog = new ReviewBusinessValueDialog(parentFrame, stories, businessValueService);
+        dialog.setVisible(true);
+        refreshUI();
     }
 
     private void showBacklogDialog() {
