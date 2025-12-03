@@ -368,9 +368,9 @@ public class ScrumSimulationPanel extends JPanel {
     private List<Story> initializeStories() {
         return new ArrayList<>(Arrays.asList(
                 new Story("Implement user authentication system", StoryStatus.IN_PROGRESS, 8, "Sairaj Dalvi, Pranav Irlapale"),
-                new Story("Design dashboard UI components", StoryStatus.TODO, 5, "Gunjan Purohit"),
+                new Story("Design dashboard UI components", StoryStatus.TO_DO, 5, "Gunjan Purohit"),
                 new Story("Setup CI/CD pipeline", StoryStatus.DONE, 13, "Shreyas Revankar, Viraj Rathor"),
-                new Story("Create API documentation", StoryStatus.NEW, 3, "Viraj Rathor")
+                new Story("Create API documentation", StoryStatus.TO_DO, 3, "Viraj Rathor")
         ));
     }
 

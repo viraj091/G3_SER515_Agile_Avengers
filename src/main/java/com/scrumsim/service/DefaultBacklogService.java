@@ -63,7 +63,7 @@ public class DefaultBacklogService implements BacklogService {
             return null;
         }
 
-        Story newStory = new Story(title, description, StoryStatus.NEW, points, "");
+        Story newStory = new Story(title, description, StoryStatus.TO_DO, points, "");
         storyRepository.save(newStory);
 
         System.out.println("Successfully created new story: " + title);
