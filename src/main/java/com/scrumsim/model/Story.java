@@ -119,6 +119,12 @@ public class Story {
     }
 
     public void setAssignees(String assignees) {
+        if (assignees != null && !assignees.trim().isEmpty()) {
+            if (!TeamMembers.isValidAssigneeList(assignees)) {
+                throw new IllegalArgumentException("Invalid assignee. Only allowed team members: " +
+                    String.join(", ", TeamMembers.ALLOWED_MEMBERS));
+            }
+        }
         this.assignees = assignees != null ? assignees : "";
     }
 
