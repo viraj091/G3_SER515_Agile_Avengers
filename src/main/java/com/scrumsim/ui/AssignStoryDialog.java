@@ -1,6 +1,7 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
+import com.scrumsim.model.TeamMembers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,13 +30,7 @@ public class AssignStoryDialog extends JDialog {
         add(storyComboBox);
 
         add(new JLabel("Select Developer:"));
-        developers = new String[]{
-            "Viraj Rathor",
-            "Sairaj Dalvi",
-            "Shreyas Revankar",
-            "Pranav Irlapale",
-            "Gunjan Purohit"
-        };
+        developers = TeamMembers.getAllowedMembersArray();
         developerComboBox = new JComboBox<>(developers);
         add(developerComboBox);
 
