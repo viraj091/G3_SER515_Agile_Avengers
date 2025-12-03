@@ -8,8 +8,19 @@ import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
 import com.scrumsim.service.BacklogService;
 import com.scrumsim.service.DefaultBacklogService;
+import com.scrumsim.service.StakeholderInputService;
+import com.scrumsim.service.DefaultStakeholderInputService;
+import com.scrumsim.service.StakeholderFeedbackService;
+import com.scrumsim.service.DefaultStakeholderFeedbackService;
+import com.scrumsim.service.BusinessValueService;
+import com.scrumsim.service.DefaultBusinessValueService;
+import com.scrumsim.service.CommunicationService;
+import com.scrumsim.service.DefaultCommunicationService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
+import com.scrumsim.repository.StakeholderFeedbackRepository;
+import com.scrumsim.repository.InMemoryStakeholderFeedbackRepository;
+import com.scrumsim.store.InMemoryDataStore;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -32,9 +43,13 @@ public class ScrumSimulationPanel extends JPanel {
     private final MemberCardFactory memberCardFactory;
     private final RolePermissionManager rolePermissionManager;
     private final BacklogService backlogService;
+    private final BusinessValueService businessValueService;
+    private final StorySelectionManager selectionManager;
+    private boolean multiSelectMode;
 
     private static final int SPRINT_GOAL = 30;
     private static final StoryRepository sharedStoryRepository = new InMemoryStoryRepository();
+    private static final InMemoryDataStore<String, String> sharedDataStore = new InMemoryDataStore<>();
 
     public ScrumSimulationPanel(Navigator navigator, String teamName, ProgressCalculator progressCalculator, User currentUser) {
         this.navigator = navigator;
@@ -46,8 +61,11 @@ public class ScrumSimulationPanel extends JPanel {
         this.storyCardFactory = new StoryCardFactory(this::onEditStory);
         this.memberCardFactory = new MemberCardFactory();
         this.rolePermissionManager = new RolePermissionManager();
+        this.selectionManager = new StorySelectionManager();
+        this.multiSelectMode = false;
 
         this.backlogService = new DefaultBacklogService(sharedStoryRepository);
+        this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -84,6 +102,11 @@ public class ScrumSimulationPanel extends JPanel {
         backlogBtn.addActionListener(e -> showBacklogDialog());
         leftPanel.add(backlogBtn);
 
+        JButton multiSelectBtn = new JButton("Multi-Select");
+        multiSelectBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        multiSelectBtn.addActionListener(e -> toggleMultiSelectMode(multiSelectBtn));
+        leftPanel.add(multiSelectBtn);
+
         JLabel title = new JLabel("Scrum Simulation Tool - " + teamName, SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
@@ -95,12 +118,32 @@ public class ScrumSimulationPanel extends JPanel {
         myWorkBtn.addActionListener(e -> showMyWorkDialog());
         rightPanel.add(myWorkBtn);
 
+        JButton giveInputBtn = new JButton("Give Input");
+        giveInputBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        giveInputBtn.addActionListener(e -> showStakeholderInputDialog());
+        rightPanel.add(giveInputBtn);
+
         if (rolePermissionManager.shouldShowButton(currentUser, "Assign Story")) {
             JButton assignStoryBtn = new JButton("Assign Story");
             assignStoryBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             assignStoryBtn.addActionListener(e -> showAssignStoryDialog());
             rolePermissionManager.applyButtonPermission(assignStoryBtn, currentUser, "Assign Story");
             rightPanel.add(assignStoryBtn);
+        }
+
+        if (rolePermissionManager.shouldShowButton(currentUser, "Review Business Value")) {
+            JButton reviewBVBtn = new JButton("Review Business Value");
+            reviewBVBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            reviewBVBtn.addActionListener(e -> showReviewBusinessValueDialog());
+            rolePermissionManager.applyButtonPermission(reviewBVBtn, currentUser, "Review Business Value");
+            rightPanel.add(reviewBVBtn);
+        }
+
+        if (currentUser.isProductOwner()) {
+            JButton viewCommBtn = new JButton("View Communication");
+            viewCommBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            viewCommBtn.addActionListener(e -> showCommunicationDialog());
+            rightPanel.add(viewCommBtn);
         }
 
         topSection.add(leftPanel, BorderLayout.WEST);
@@ -123,6 +166,30 @@ public class ScrumSimulationPanel extends JPanel {
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
         MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        dialog.setVisible(true);
+    }
+
+    private void showStakeholderInputDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        StakeholderFeedbackRepository repository = new InMemoryStakeholderFeedbackRepository();
+        StakeholderFeedbackService feedbackService = new DefaultStakeholderFeedbackService(repository);
+        StakeholderInputService inputService = new DefaultStakeholderInputService(feedbackService);
+        CommunicationService commService = new DefaultCommunicationService(sharedDataStore);
+        StakeholderInputDialog dialog = new StakeholderInputDialog(parentFrame, inputService, commService, currentUser.getName(), stories);
+        dialog.setVisible(true);
+    }
+
+    private void showReviewBusinessValueDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        ReviewBusinessValueDialog dialog = new ReviewBusinessValueDialog(parentFrame, stories, businessValueService);
+        dialog.setVisible(true);
+        refreshUI();
+    }
+
+    private void showCommunicationDialog() {
+        Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
+        CommunicationService commService = new DefaultCommunicationService(sharedDataStore);
+        CommunicationDialog dialog = new CommunicationDialog(parentFrame, commService);
         dialog.setVisible(true);
     }
 
@@ -176,7 +243,7 @@ public class ScrumSimulationPanel extends JPanel {
         backlog.add(Box.createVerticalStrut(10));
 
         for (Story story : stories) {
-            backlog.add(storyCardFactory.createStoryCard(story));
+            backlog.add(createStoryCardWithCheckbox(story));
             backlog.add(Box.createVerticalStrut(8));
         }
 
@@ -213,10 +280,19 @@ public class ScrumSimulationPanel extends JPanel {
         return membersPanel;
     }
 
-    private JButton createFooter() {
-        JButton backBtn = new JButton(" Back to Team Management");
+    private JPanel createFooter() {
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footerPanel.setOpaque(false);
+
+        JButton backBtn = new JButton("Back to Team Management");
         backBtn.addActionListener(e -> navigator.showTeamManagement());
-        return backBtn;
+        footerPanel.add(backBtn);
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.addActionListener(e -> navigator.showLogin());
+        footerPanel.add(logoutBtn);
+
+        return footerPanel;
     }
 
     private void updateProgress() {
@@ -246,6 +322,36 @@ public class ScrumSimulationPanel extends JPanel {
         }
     }
 
+    private JPanel createStoryCardWithCheckbox(Story story) {
+        if (!multiSelectMode) {
+            return storyCardFactory.createStoryCard(story);
+        }
+
+        JPanel wrapper = new JPanel(new BorderLayout(5, 0));
+        wrapper.setOpaque(false);
+
+        JCheckBox checkbox = new JCheckBox();
+        checkbox.setOpaque(false);
+        checkbox.setSelected(selectionManager.isSelected(story.getId()));
+        checkbox.addActionListener(e -> selectionManager.toggleSelect(story.getId()));
+
+        wrapper.add(checkbox, BorderLayout.WEST);
+        wrapper.add(storyCardFactory.createStoryCard(story), BorderLayout.CENTER);
+
+        return wrapper;
+    }
+
+    private void toggleMultiSelectMode(JButton button) {
+        multiSelectMode = !multiSelectMode;
+        if (multiSelectMode) {
+            button.setText("Exit Multi-Select");
+        } else {
+            button.setText("Multi-Select");
+            selectionManager.clearSelection();
+        }
+        refreshUI();
+    }
+
     private void refreshUI() {
         removeAll();
 
@@ -262,9 +368,9 @@ public class ScrumSimulationPanel extends JPanel {
     private List<Story> initializeStories() {
         return new ArrayList<>(Arrays.asList(
                 new Story("Implement user authentication system", StoryStatus.IN_PROGRESS, 8, "Sairaj Dalvi, Pranav Irlapale"),
-                new Story("Design dashboard UI components", StoryStatus.TODO, 5, "Gunjan Purohit"),
+                new Story("Design dashboard UI components", StoryStatus.TO_DO, 5, "Gunjan Purohit"),
                 new Story("Setup CI/CD pipeline", StoryStatus.DONE, 13, "Shreyas Revankar, Viraj Rathor"),
-                new Story("Create API documentation", StoryStatus.NEW, 3, "Viraj Rathor")
+                new Story("Create API documentation", StoryStatus.TO_DO, 3, "Viraj Rathor")
         ));
     }
 
