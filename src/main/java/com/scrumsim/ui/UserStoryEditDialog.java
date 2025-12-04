@@ -2,36 +2,50 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
+import com.scrumsim.model.TeamMembers;
+import com.scrumsim.model.User;
+import com.scrumsim.service.StoryService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserStoryEditDialog extends JDialog {
 
     private final Story story;
     private final boolean isCreateMode;
     private boolean saved = false;
+    private final StoryService storyService;
+    private final User currentUser;
+    private final StoryStatus originalStatus;
 
     private JTextField nameField;
     private JTextArea descriptionArea;
-    private JComboBox<String> statusDropdown;
+    private JComboBox<StoryStatus> statusDropdown;
     private JSpinner pointsSpinner;
-    private JTextField assigneesField;
+    private JCheckBox[] assigneeCheckboxes;
 
 
-    public UserStoryEditDialog(Frame parent, Story story) {
+    public UserStoryEditDialog(Frame parent, Story story, StoryService storyService, User currentUser) {
         super(parent, "Edit User Story", true);
         this.story = story;
         this.isCreateMode = false;
+        this.storyService = storyService;
+        this.currentUser = currentUser;
+        this.originalStatus = story.getStatus();
         initializeUI();
         populateFields();
     }
 
 
-    public UserStoryEditDialog(Frame parent) {
+    public UserStoryEditDialog(Frame parent, StoryService storyService, User currentUser) {
         super(parent, "Create User Story", true);
-        this.story = new Story("", "", StoryStatus.NEW, 0, "");
+        this.story = new Story("", "", StoryStatus.TO_DO, 0, "");
         this.isCreateMode = true;
+        this.storyService = storyService;
+        this.currentUser = currentUser;
+        this.originalStatus = StoryStatus.TO_DO;
         initializeUI();
     }
 
@@ -95,11 +109,7 @@ public class UserStoryEditDialog extends JDialog {
 
         gbc.gridx = 1;
         gbc.weightx = 1.0;
-        String[] statuses = new String[StoryStatus.values().length];
-        for (int i = 0; i < StoryStatus.values().length; i++) {
-            statuses[i] = StoryStatus.values()[i].getDisplayName();
-        }
-        statusDropdown = new JComboBox<>(statuses);
+        statusDropdown = new JComboBox<>(StoryStatus.values());
         statusDropdown.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         formPanel.add(statusDropdown, gbc);
 
@@ -119,17 +129,26 @@ public class UserStoryEditDialog extends JDialog {
 
         row++;
 
-        // Assignees field
+        // Assignees checkboxes
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.weightx = 0.0;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
         formPanel.add(new JLabel("Assignees:"), gbc);
 
         gbc.gridx = 1;
         gbc.weightx = 1.0;
-        assigneesField = new JTextField(30);
-        assigneesField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        formPanel.add(assigneesField, gbc);
+        gbc.fill = GridBagConstraints.BOTH;
+        JPanel checkboxPanel = new JPanel();
+        checkboxPanel.setLayout(new BoxLayout(checkboxPanel, BoxLayout.Y_AXIS));
+
+        assigneeCheckboxes = new JCheckBox[TeamMembers.ALLOWED_MEMBERS.size()];
+        for (int i = 0; i < TeamMembers.ALLOWED_MEMBERS.size(); i++) {
+            assigneeCheckboxes[i] = new JCheckBox(TeamMembers.ALLOWED_MEMBERS.get(i));
+            assigneeCheckboxes[i].setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            checkboxPanel.add(assigneeCheckboxes[i]);
+        }
+        formPanel.add(checkboxPanel, gbc);
 
         add(formPanel, BorderLayout.CENTER);
 
@@ -154,9 +173,22 @@ public class UserStoryEditDialog extends JDialog {
         if (!isCreateMode) {
             nameField.setText(story.getTitle());
             descriptionArea.setText(story.getDescription());
-            statusDropdown.setSelectedItem(story.getStatus().getDisplayName());
+            statusDropdown.setSelectedItem(story.getStatus());
             pointsSpinner.setValue(story.getPoints());
-            assigneesField.setText(story.getAssignees());
+
+            String currentAssignees = story.getAssignees();
+            if (currentAssignees != null && !currentAssignees.trim().isEmpty()) {
+                String[] assignedNames = currentAssignees.split(",");
+                for (String assignedName : assignedNames) {
+                    String trimmedName = assignedName.trim();
+                    for (int i = 0; i < assigneeCheckboxes.length; i++) {
+                        if (assigneeCheckboxes[i].getText().equals(trimmedName)) {
+                            assigneeCheckboxes[i].setSelected(true);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -170,12 +202,33 @@ public class UserStoryEditDialog extends JDialog {
             return;
         }
 
-        // Update story object with form values
+        List<String> selectedAssignees = new ArrayList<>();
+        for (JCheckBox checkbox : assigneeCheckboxes) {
+            if (checkbox.isSelected()) {
+                selectedAssignees.add(checkbox.getText());
+            }
+        }
+        String assigneesString = String.join(", ", selectedAssignees);
+
+        StoryStatus newStatus = (StoryStatus) statusDropdown.getSelectedItem();
+
+        if (!isCreateMode && newStatus != originalStatus) {
+            if (storyService != null && !storyService.updateStoryStatus(story.getId(), newStatus, currentUser)) {
+                JOptionPane.showMessageDialog(this,
+                    "You are not assigned to this story. Only assigned developers can update the status.",
+                    "Access Denied",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
         story.setTitle(name);
         story.setDescription(descriptionArea.getText().trim());
-        story.setStatus(StoryStatus.fromDisplayName((String) statusDropdown.getSelectedItem()));
+        if (isCreateMode || storyService == null) {
+            story.setStatus(newStatus);
+        }
         story.setPoints((Integer) pointsSpinner.getValue());
-        story.setAssignees(assigneesField.getText().trim());
+        story.setAssignees(assigneesString);
 
         saved = true;
         dispose();
