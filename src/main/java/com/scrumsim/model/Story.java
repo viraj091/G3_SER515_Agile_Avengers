@@ -1,25 +1,50 @@
 package com.scrumsim.model;
 
-/**
- * Represents a user story in the product backlog.
- * Follows SRP by only managing story-related data and state.
- * Immutable fields with controlled mutation through methods.
- */
 public class Story {
-    private final String title;
-    private final String assignees;
+    private String id;
+    private String title;
+    private String description;
+    private String assignees;
     private StoryStatus status;
     private int points;
 
-    public Story(String title, StoryStatus status, int points, String assignees) {
+    public Story(String title, String description, StoryStatus status, int points, String assignees) {
         this.title = title;
+        this.description = description != null ? description : "";
         this.status = status;
         this.points = points;
-        this.assignees = assignees;
+        this.assignees = assignees != null ? assignees : "";
+    }
+
+    public Story(String title, StoryStatus status, int points, String assignees) {
+        this(title, "", status, points, assignees);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Story title cannot be empty");
+        }
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description != null ? description : "";
     }
 
     public StoryStatus getStatus() {
@@ -45,10 +70,10 @@ public class Story {
         return assignees;
     }
 
-    /**
-     * Check if this story is completed.
-     * Encapsulates the logic of what "done" means for a story.
-     */
+    public void setAssignees(String assignees) {
+        this.assignees = assignees != null ? assignees : "";
+    }
+
     public boolean isCompleted() {
         return status == StoryStatus.DONE;
     }

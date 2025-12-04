@@ -3,11 +3,6 @@ package com.scrumsim.service;
 import com.scrumsim.model.Story;
 import java.util.List;
 
-/**
- * Implementation of progress calculation for Scrum sprints.
- * Follows SRP by only handling progress calculation logic.
- * Follows OCP by being extensible through the interface.
- */
 public class SprintProgressCalculator implements ProgressCalculator {
 
     @Override

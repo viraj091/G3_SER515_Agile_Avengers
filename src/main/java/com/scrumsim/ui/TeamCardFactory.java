@@ -9,19 +9,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
-/**
- * Factory for creating team card UI components.
- * Follows SRP by only handling team card creation and click interactions.
- */
 public class TeamCardFactory {
 
-    /**
-     * Create a clickable card for a team.
-     * @param team The team to create a card for
-     * @param onTeamClick Callback invoked when the team card is clicked
-     * @return A JPanel representing the team card
-     */
-    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick) {
+    public JPanel createTeamCard(Team team, Consumer<String> onTeamClick, Consumer<Team> onJoinClick) {
+
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -29,15 +20,16 @@ public class TeamCardFactory {
                 new EmptyBorder(10, 10, 10, 10)
         ));
 
-        // Team name and role labels
+        // Team name label
         JLabel name = new JLabel(team.getName());
         name.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
+        // Role label
         JLabel role = new JLabel(team.getRole());
         role.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         role.setForeground(Color.GRAY);
 
-        // Info panel
+        // Center info panel
         JPanel info = new JPanel();
         info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
         info.setOpaque(false);
@@ -45,12 +37,26 @@ public class TeamCardFactory {
         info.add(role);
 
         card.add(info, BorderLayout.CENTER);
+
+        // Bottom panel for Join Button
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        bottomPanel.setOpaque(false);
+
+        JButton joinButton = new JButton("Join Team");
+        joinButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        joinButton.addActionListener(e -> onJoinClick.accept(team));
+
+        bottomPanel.add(joinButton);
+        card.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Card click event (if user clicks anywhere else)
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Add click listener to trigger navigation
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                // prevent click firing when clicking Join button
+                if (e.getSource() instanceof JButton) return;
                 onTeamClick.accept(team.getName());
             }
         });
