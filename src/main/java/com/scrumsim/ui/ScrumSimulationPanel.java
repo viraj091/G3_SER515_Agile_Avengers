@@ -16,6 +16,10 @@ import com.scrumsim.service.BusinessValueService;
 import com.scrumsim.service.DefaultBusinessValueService;
 import com.scrumsim.service.CommunicationService;
 import com.scrumsim.service.DefaultCommunicationService;
+import com.scrumsim.service.StoryService;
+import com.scrumsim.service.DefaultStoryService;
+import com.scrumsim.service.StoryUpdateGuard;
+import com.scrumsim.service.DefaultStoryUpdateGuard;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -44,6 +48,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final RolePermissionManager rolePermissionManager;
     private final BacklogService backlogService;
     private final BusinessValueService businessValueService;
+    private final StoryService storyService;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
@@ -66,6 +71,8 @@ public class ScrumSimulationPanel extends JPanel {
 
         this.backlogService = new DefaultBacklogService(sharedStoryRepository);
         this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
+        StoryUpdateGuard guard = new DefaultStoryUpdateGuard();
+        this.storyService = new DefaultStoryService(sharedStoryRepository, guard);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -303,7 +310,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void onEditStory(Story story) {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, story);
+        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, story, storyService, currentUser);
         dialog.setVisible(true);
 
         if (dialog.wasSaved()) {
@@ -313,7 +320,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void onAddStory() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame);
+        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, storyService, currentUser);
         dialog.setVisible(true);
 
         if (dialog.wasSaved()) {
