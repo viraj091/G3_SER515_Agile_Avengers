@@ -3,6 +3,8 @@ package com.scrumsim.ui;
 import com.scrumsim.model.Story;
 import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.TeamMembers;
+import com.scrumsim.model.User;
+import com.scrumsim.service.StoryService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +16,9 @@ public class UserStoryEditDialog extends JDialog {
     private final Story story;
     private final boolean isCreateMode;
     private boolean saved = false;
+    private final StoryService storyService;
+    private final User currentUser;
+    private final StoryStatus originalStatus;
 
     private JTextField nameField;
     private JTextArea descriptionArea;
@@ -22,19 +27,25 @@ public class UserStoryEditDialog extends JDialog {
     private JCheckBox[] assigneeCheckboxes;
 
 
-    public UserStoryEditDialog(Frame parent, Story story) {
+    public UserStoryEditDialog(Frame parent, Story story, StoryService storyService, User currentUser) {
         super(parent, "Edit User Story", true);
         this.story = story;
         this.isCreateMode = false;
+        this.storyService = storyService;
+        this.currentUser = currentUser;
+        this.originalStatus = story.getStatus();
         initializeUI();
         populateFields();
     }
 
 
-    public UserStoryEditDialog(Frame parent) {
+    public UserStoryEditDialog(Frame parent, StoryService storyService, User currentUser) {
         super(parent, "Create User Story", true);
         this.story = new Story("", "", StoryStatus.TO_DO, 0, "");
         this.isCreateMode = true;
+        this.storyService = storyService;
+        this.currentUser = currentUser;
+        this.originalStatus = StoryStatus.TO_DO;
         initializeUI();
     }
 
@@ -199,9 +210,23 @@ public class UserStoryEditDialog extends JDialog {
         }
         String assigneesString = String.join(", ", selectedAssignees);
 
+        StoryStatus newStatus = (StoryStatus) statusDropdown.getSelectedItem();
+
+        if (!isCreateMode && newStatus != originalStatus) {
+            if (storyService != null && !storyService.updateStoryStatus(story.getId(), newStatus, currentUser)) {
+                JOptionPane.showMessageDialog(this,
+                    "You are not assigned to this story. Only assigned developers can update the status.",
+                    "Access Denied",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
         story.setTitle(name);
         story.setDescription(descriptionArea.getText().trim());
-        story.setStatus((StoryStatus) statusDropdown.getSelectedItem());
+        if (isCreateMode || storyService == null) {
+            story.setStatus(newStatus);
+        }
         story.setPoints((Integer) pointsSpinner.getValue());
         story.setAssignees(assigneesString);
 
