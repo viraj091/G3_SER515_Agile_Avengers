@@ -36,7 +36,7 @@ public class InMemoryStoryRepository implements StoryRepository {
         story1.setId(generateId());
         stories.add(story1);
 
-        Story story2 = new Story("Design dashboard UI components", StoryStatus.TODO, 5, "Gunjan Purohit");
+        Story story2 = new Story("Design dashboard UI components", StoryStatus.TO_DO, 5, "Gunjan Purohit");
         story2.setId(generateId());
         stories.add(story2);
 
@@ -44,15 +44,15 @@ public class InMemoryStoryRepository implements StoryRepository {
         story3.setId(generateId());
         stories.add(story3);
 
-        Story story4 = new Story("Create API documentation", StoryStatus.NEW, 3, "Viraj Rathor");
+        Story story4 = new Story("Create API documentation", StoryStatus.TO_DO, 3, "Viraj Rathor");
         story4.setId(generateId());
         stories.add(story4);
 
-        Story story5 = new Story("Refactor database layer", StoryStatus.NEW, 8, "");
+        Story story5 = new Story("Refactor database layer", StoryStatus.TO_DO, 8, "");
         story5.setId(generateId());
         stories.add(story5);
 
-        Story story6 = new Story("Add unit tests for services", StoryStatus.NEW, 5, "");
+        Story story6 = new Story("Add unit tests for services", StoryStatus.TO_DO, 5, "");
         story6.setId(generateId());
         stories.add(story6);
     }
@@ -216,5 +216,29 @@ public class InMemoryStoryRepository implements StoryRepository {
         }
         Collections.sort(filteredStories, Comparator.comparingInt(Story::getPriority));
         return filteredStories;
+    }
+
+    @Override
+    public void updateStatus(String storyId, StoryStatus newStatus) {
+        if (storyId == null || storyId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Story ID cannot be null or empty");
+        }
+
+        if (newStatus == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+
+        boolean found = false;
+        for (Story story : stories) {
+            if (storyId.equals(story.getId())) {
+                story.setStatus(newStatus);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new IllegalArgumentException("Story with ID '" + storyId + "' not found");
+        }
     }
 }
