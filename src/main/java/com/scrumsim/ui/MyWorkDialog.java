@@ -1,7 +1,6 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
-import com.scrumsim.model.TeamMembers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,13 +10,13 @@ import java.util.List;
 public class MyWorkDialog extends JDialog {
 
     public MyWorkDialog(Frame parent, String currentUserName, List<Story> allStories) {
-        super(parent, "Team Work Overview", true);
+        super(parent, "My Work", true);
 
         setSize(800, 600);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
 
-        JLabel headerLabel = new JLabel("All Team Members and Their Assigned Stories");
+        JLabel headerLabel = new JLabel("My Assigned Stories");
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(headerLabel, BorderLayout.NORTH);
@@ -26,11 +25,9 @@ public class MyWorkDialog extends JDialog {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        for (String memberName : TeamMembers.ALLOWED_MEMBERS) {
-            JPanel memberSection = createMemberSection(memberName, allStories, currentUserName);
-            mainPanel.add(memberSection);
-            mainPanel.add(Box.createVerticalStrut(15));
-        }
+        // Only show current user's section
+        JPanel memberSection = createMemberSection(currentUserName, allStories, currentUserName);
+        mainPanel.add(memberSection);
 
         JScrollPane scrollPane = new JScrollPane(mainPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -52,14 +49,7 @@ public class MyWorkDialog extends JDialog {
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
 
-        boolean isCurrentUser = memberName.contains(currentUserName) || currentUserName.contains(memberName.split(" ")[0]);
-        Color headerColor = isCurrentUser ? new Color(173, 216, 230) : new Color(240, 240, 240);
-        section.setBackground(headerColor);
-
-        JLabel memberLabel = new JLabel(memberName + (isCurrentUser ? " (You)" : ""));
-        memberLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        section.add(memberLabel);
-        section.add(Box.createVerticalStrut(10));
+        section.setBackground(new Color(173, 216, 230));
 
         List<Story> memberStories = getStoriesForMember(memberName, allStories);
 

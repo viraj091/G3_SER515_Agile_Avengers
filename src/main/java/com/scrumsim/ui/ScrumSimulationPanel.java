@@ -2,7 +2,7 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Member;
 import com.scrumsim.model.Story;
-import com.scrumsim.model.StoryStatus;
+//import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.User;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
@@ -29,7 +29,7 @@ import com.scrumsim.store.InMemoryDataStore;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
