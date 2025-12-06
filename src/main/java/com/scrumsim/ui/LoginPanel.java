@@ -1,6 +1,7 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.User;
+import com.scrumsim.model.UserRole;
 import com.scrumsim.service.DefaultAuthService;
 import com.scrumsim.store.UserSession;
 
@@ -15,6 +16,7 @@ public class LoginPanel extends JPanel {
 
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private JComboBox<String> roleDropdown;
     private JButton loginButton;
     private JLabel errorLabel;
 
@@ -62,11 +64,21 @@ public class LoginPanel extends JPanel {
         gbc.gridx = 1;
         add(passwordField, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        add(new JLabel("Role:"), gbc);
+
+        String[] roles = {"Scrum Master", "Product Owner", "Developer"};
+        roleDropdown = new JComboBox<>(roles);
+        gbc.gridx = 1;
+        add(roleDropdown, gbc);
+
         errorLabel = new JLabel("");
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.gridwidth = 2;
         add(errorLabel, gbc);
 
@@ -78,7 +90,7 @@ public class LoginPanel extends JPanel {
         loginButton.setBorder(new LineBorder(new Color(0, 80, 160), 2, true));
         loginButton.setPreferredSize(new Dimension(200, 40));
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         add(loginButton, gbc);
 
         loginButton.addActionListener(e -> handleLogin());
@@ -89,6 +101,7 @@ public class LoginPanel extends JPanel {
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
+        String selectedRoleString = (String) roleDropdown.getSelectedItem();
 
         errorLabel.setText("");
 
@@ -102,7 +115,8 @@ public class LoginPanel extends JPanel {
             return;
         }
 
-        User user = authService.authenticate(username, password);
+        UserRole selectedRole = convertToUserRole(selectedRoleString);
+        User user = authService.authenticate(username, password, selectedRole);
 
         if (user != null) {
             UserSession.getInstance().startSession(user);
@@ -110,5 +124,15 @@ public class LoginPanel extends JPanel {
         } else {
             errorLabel.setText("Invalid credentials. Please try again.");
         }
+    }
+
+    private UserRole convertToUserRole(String roleString) {
+        if (roleString.equals("Scrum Master")) {
+            return UserRole.SCRUM_MASTER;
+        }
+        if (roleString.equals("Product Owner")) {
+            return UserRole.PRODUCT_OWNER;
+        }
+        return UserRole.DEVELOPER;
     }
 }
