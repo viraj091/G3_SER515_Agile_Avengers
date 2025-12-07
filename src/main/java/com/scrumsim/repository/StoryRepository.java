@@ -37,4 +37,6 @@ public interface StoryRepository {
     List<Story> findAllByStatusSortedByPriority(StoryStatus status);
 
     void updateStatus(String storyId, StoryStatus newStatus);
+
+    List<Story> findByAssignee(String name);
 }
