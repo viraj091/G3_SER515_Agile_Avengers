@@ -241,4 +241,23 @@ public class InMemoryStoryRepository implements StoryRepository {
             throw new IllegalArgumentException("Story with ID '" + storyId + "' not found");
         }
     }
+
+    @Override
+    public List<Story> findByAssignee(String name) {
+        List<Story> assignedStories = new ArrayList<>();
+        if (name == null || name.trim().isEmpty()) {
+            return assignedStories;
+        }
+        String searchName = name.trim();
+        String firstName = searchName.split(" ")[0];
+        for (Story story : stories) {
+            String assignees = story.getAssignees();
+            if (assignees != null && !assignees.trim().isEmpty()) {
+                if (assignees.contains(searchName) || assignees.contains(firstName)) {
+                    assignedStories.add(story);
+                }
+            }
+        }
+        return assignedStories;
+    }
 }

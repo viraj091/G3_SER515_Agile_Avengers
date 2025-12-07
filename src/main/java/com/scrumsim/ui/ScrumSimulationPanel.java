@@ -2,7 +2,7 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Member;
 import com.scrumsim.model.Story;
-import com.scrumsim.model.StoryStatus;
+//import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.User;
 import com.scrumsim.navigation.Navigator;
 import com.scrumsim.service.ProgressCalculator;
@@ -16,6 +16,10 @@ import com.scrumsim.service.BusinessValueService;
 import com.scrumsim.service.DefaultBusinessValueService;
 import com.scrumsim.service.CommunicationService;
 import com.scrumsim.service.DefaultCommunicationService;
+import com.scrumsim.service.StoryService;
+import com.scrumsim.service.DefaultStoryService;
+import com.scrumsim.service.StoryUpdateGuard;
+import com.scrumsim.service.DefaultStoryUpdateGuard;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -25,7 +29,7 @@ import com.scrumsim.store.InMemoryDataStore;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +48,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final RolePermissionManager rolePermissionManager;
     private final BacklogService backlogService;
     private final BusinessValueService businessValueService;
+    private final StoryService storyService;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
@@ -66,6 +71,8 @@ public class ScrumSimulationPanel extends JPanel {
 
         this.backlogService = new DefaultBacklogService(sharedStoryRepository);
         this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
+        StoryUpdateGuard guard = new DefaultStoryUpdateGuard();
+        this.storyService = new DefaultStoryService(sharedStoryRepository, guard);
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -165,7 +172,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        MyWorkDialog dialog = new MyWorkDialog(parentFrame, sharedStoryRepository, currentUser.getName());
         dialog.setVisible(true);
     }
 
@@ -303,7 +310,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void onEditStory(Story story) {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, story);
+        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, story, storyService, currentUser);
         dialog.setVisible(true);
 
         if (dialog.wasSaved()) {
@@ -313,7 +320,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void onAddStory() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame);
+        UserStoryEditDialog dialog = new UserStoryEditDialog(parentFrame, storyService, currentUser);
         dialog.setVisible(true);
 
         if (dialog.wasSaved()) {
@@ -366,12 +373,7 @@ public class ScrumSimulationPanel extends JPanel {
     }
 
     private List<Story> initializeStories() {
-        return new ArrayList<>(Arrays.asList(
-                new Story("Implement user authentication system", StoryStatus.IN_PROGRESS, 8, "Sairaj Dalvi, Pranav Irlapale"),
-                new Story("Design dashboard UI components", StoryStatus.TO_DO, 5, "Gunjan Purohit"),
-                new Story("Setup CI/CD pipeline", StoryStatus.DONE, 13, "Shreyas Revankar, Viraj Rathor"),
-                new Story("Create API documentation", StoryStatus.TO_DO, 3, "Viraj Rathor")
-        ));
+        return sharedStoryRepository.findAll();
     }
 
     private List<Member> initializeMembers() {
