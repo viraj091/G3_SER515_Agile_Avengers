@@ -20,6 +20,8 @@ import com.scrumsim.service.StoryService;
 import com.scrumsim.service.DefaultStoryService;
 import com.scrumsim.service.StoryUpdateGuard;
 import com.scrumsim.service.DefaultStoryUpdateGuard;
+import com.scrumsim.service.StatusRefreshService;
+import com.scrumsim.service.DefaultStatusRefreshService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -40,7 +42,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final String teamName;
     private final User currentUser;
 
-    private final List<Story> stories;
+    private List<Story> stories;
     private final JLabel progressLabel;
 
     private final StoryCardFactory storyCardFactory;
@@ -49,6 +51,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final BacklogService backlogService;
     private final BusinessValueService businessValueService;
     private final StoryService storyService;
+    private final StatusRefreshService refreshService;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
@@ -73,6 +76,10 @@ public class ScrumSimulationPanel extends JPanel {
         this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
         StoryUpdateGuard guard = new DefaultStoryUpdateGuard();
         this.storyService = new DefaultStoryService(sharedStoryRepository, guard);
+
+        this.refreshService = new DefaultStatusRefreshService();
+        this.refreshService.addListener(this::handleStatusRefresh);
+        this.refreshService.start();
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -360,6 +367,8 @@ public class ScrumSimulationPanel extends JPanel {
     }
 
     private void refreshUI() {
+        this.stories = sharedStoryRepository.findAll();
+
         removeAll();
 
         add(createHeader(), BorderLayout.NORTH);
@@ -370,6 +379,16 @@ public class ScrumSimulationPanel extends JPanel {
 
         revalidate();
         repaint();
+    }
+
+    private void handleStatusRefresh() {
+        SwingUtilities.invokeLater(this::refreshUI);
+    }
+
+    public void stopRefreshService() {
+        if (refreshService != null) {
+            refreshService.stop();
+        }
     }
 
     private List<Story> initializeStories() {
