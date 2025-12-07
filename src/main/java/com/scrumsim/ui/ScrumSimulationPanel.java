@@ -172,7 +172,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        MyWorkDialog dialog = new MyWorkDialog(parentFrame, sharedStoryRepository, currentUser.getName());
+        MyWorkDialog dialog = new MyWorkDialog(parentFrame, sharedStoryRepository, storyService, currentUser);
         dialog.setVisible(true);
     }
 
