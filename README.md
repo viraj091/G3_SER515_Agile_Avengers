@@ -52,7 +52,7 @@ Password - dev123
 User Name - qa
 Password - qa123
 
-User Name - viraj_rathor     | 
+User Name - viraj_rathor     
 password - viraj123 
 
 User Name - gunjan_purohit   
