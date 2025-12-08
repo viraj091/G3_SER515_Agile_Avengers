@@ -52,6 +52,21 @@ Password - dev123
 User Name - qa
 Password - qa123
 
+User Name - viraj_rathor     | 
+password - viraj123 
+
+User Name - gunjan_purohit   
+Password - gunjan123
+
+User Name - sairaj_dalvi 
+Password - sairaj123
+
+User Name - pranav_irlapale 
+password - pranav123
+
+User Name - shreyas_revankar
+password - shreyas123
+
 Below is the Project Structure that our team will be using - 
 
 src/main/java/com/scrumsim/
