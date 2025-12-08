@@ -169,4 +169,17 @@ public class DefaultBacklogService implements BacklogService {
             storyRepository.updatePriority(storyId, newPriority);
         }
     }
+
+    @Override
+    public void moveStoriesToBacklog(List<String> storyIds) {
+        if (storyIds == null || storyIds.isEmpty()) {
+            return;
+        }
+
+        for (String storyId : storyIds) {
+            if (storyId != null && !storyId.trim().isEmpty()) {
+                storyRepository.moveToBacklog(storyId);
+            }
+        }
+    }
 }
