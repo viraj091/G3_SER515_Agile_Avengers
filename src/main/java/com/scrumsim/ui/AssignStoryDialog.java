@@ -2,6 +2,8 @@ package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
 import com.scrumsim.model.TeamMembers;
+import com.scrumsim.service.AssignmentValidator;
+import com.scrumsim.service.DefaultAssignmentValidator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,10 +15,12 @@ public class AssignStoryDialog extends JDialog {
     private JComboBox<String> developerComboBox;
     private List<Story> stories;
     private String[] developers;
+    private AssignmentValidator validator;
 
     public AssignStoryDialog(Frame parent, List<Story> stories) {
         super(parent, "Assign Story to Developer", true);
         this.stories = stories;
+        this.validator = new DefaultAssignmentValidator();
 
         setLayout(new GridLayout(3, 2, 10, 10));
         setSize(500, 200);
@@ -48,6 +52,14 @@ public class AssignStoryDialog extends JDialog {
         String developer = (String) developerComboBox.getSelectedItem();
 
         if (storyIndex >= 0 && developer != null) {
+            if (!validator.isValidAssignee(developer)) {
+                JOptionPane.showMessageDialog(this,
+                    "Invalid assignment. Developer does not exist in team.",
+                    "Invalid Assignment",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             Story story = stories.get(storyIndex);
             String currentAssignees = story.getAssignees();
 

@@ -5,6 +5,8 @@ import com.scrumsim.model.StoryStatus;
 import com.scrumsim.model.TeamMembers;
 import com.scrumsim.model.User;
 import com.scrumsim.service.StoryService;
+import com.scrumsim.service.AssignmentValidator;
+import com.scrumsim.service.DefaultAssignmentValidator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +21,7 @@ public class UserStoryEditDialog extends JDialog {
     private final StoryService storyService;
     private final User currentUser;
     private final StoryStatus originalStatus;
+    private final AssignmentValidator validator;
 
     private JTextField nameField;
     private JTextArea descriptionArea;
@@ -34,6 +37,7 @@ public class UserStoryEditDialog extends JDialog {
         this.storyService = storyService;
         this.currentUser = currentUser;
         this.originalStatus = story.getStatus();
+        this.validator = new DefaultAssignmentValidator();
         initializeUI();
         populateFields();
     }
@@ -46,6 +50,7 @@ public class UserStoryEditDialog extends JDialog {
         this.storyService = storyService;
         this.currentUser = currentUser;
         this.originalStatus = StoryStatus.TO_DO;
+        this.validator = new DefaultAssignmentValidator();
         initializeUI();
     }
 
@@ -205,7 +210,15 @@ public class UserStoryEditDialog extends JDialog {
         List<String> selectedAssignees = new ArrayList<>();
         for (JCheckBox checkbox : assigneeCheckboxes) {
             if (checkbox.isSelected()) {
-                selectedAssignees.add(checkbox.getText());
+                String assignee = checkbox.getText();
+                if (!validator.isValidAssignee(assignee)) {
+                    JOptionPane.showMessageDialog(this,
+                        "Invalid assignment: " + assignee + " does not exist in team.",
+                        "Invalid Assignment",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                selectedAssignees.add(assignee);
             }
         }
         String assigneesString = String.join(", ", selectedAssignees);
