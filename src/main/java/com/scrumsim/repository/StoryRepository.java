@@ -39,4 +39,10 @@ public interface StoryRepository {
     void updateStatus(String storyId, StoryStatus newStatus);
 
     List<Story> findByAssignee(String name);
+
+    void moveToBacklog(String storyId);
+
+    List<Story> findSprintStories();
+
+    List<Story> findBacklogStories();
 }

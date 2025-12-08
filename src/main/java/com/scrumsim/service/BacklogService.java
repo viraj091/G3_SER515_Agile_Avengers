@@ -16,4 +16,6 @@ public interface BacklogService {
     void increasePriority(String storyId);
 
     void decreasePriority(String storyId);
+
+    void moveStoriesToBacklog(List<String> storyIds);
 }

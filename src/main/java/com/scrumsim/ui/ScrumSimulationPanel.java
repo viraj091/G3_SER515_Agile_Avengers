@@ -229,7 +229,7 @@ public class ScrumSimulationPanel extends JPanel {
         System.out.println("Total Backlog Stories: " + backlogStories.size());
 
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogService, stories);
+        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogService, sharedStoryRepository);
         dialog.setVisible(true);
     }
 
@@ -263,10 +263,18 @@ public class ScrumSimulationPanel extends JPanel {
 
         JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addButtonPanel.setOpaque(false);
+
+        JButton moveToBacklogBtn = new JButton("Move to Backlog");
+        moveToBacklogBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        moveToBacklogBtn.setEnabled(!selectionManager.getSelectedStoryIds().isEmpty());
+        moveToBacklogBtn.addActionListener(e -> moveSelectedStoriesToBacklog());
+        addButtonPanel.add(moveToBacklogBtn);
+
         JButton addMoreButton = new JButton("Add More");
         addMoreButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         addMoreButton.addActionListener(e -> onAddStory());
         addButtonPanel.add(addMoreButton);
+
         backlog.add(addButtonPanel);
 
         return backlog;
@@ -366,8 +374,20 @@ public class ScrumSimulationPanel extends JPanel {
         refreshUI();
     }
 
+    private void moveSelectedStoriesToBacklog() {
+        List<String> selectedIds = selectionManager.getSelectedStoryIds();
+        if (selectedIds.isEmpty()) {
+            return;
+        }
+
+        backlogService.moveStoriesToBacklog(selectedIds);
+        selectionManager.clearSelection();
+        multiSelectMode = false;
+        refreshUI();
+    }
+
     private void refreshUI() {
-        this.stories = sharedStoryRepository.findAll();
+        this.stories = sharedStoryRepository.findSprintStories();
 
         removeAll();
 
@@ -392,7 +412,7 @@ public class ScrumSimulationPanel extends JPanel {
     }
 
     private List<Story> initializeStories() {
-        return sharedStoryRepository.findAll();
+        return sharedStoryRepository.findSprintStories();
     }
 
     private List<Member> initializeMembers() {
