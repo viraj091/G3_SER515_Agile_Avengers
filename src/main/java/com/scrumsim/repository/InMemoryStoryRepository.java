@@ -5,15 +5,19 @@ import com.scrumsim.model.StoryStatus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class InMemoryStoryRepository implements StoryRepository {
 
     private final List<Story> stories;
+    private final Set<String> sprintStoryIds;
     private int idCounter;
 
     public InMemoryStoryRepository() {
         this.stories = new ArrayList<>();
+        this.sprintStoryIds = new HashSet<>();
         this.idCounter = 1;
         initializeDefaultStories();
         printRepositoryDebugInfo();
@@ -35,26 +39,32 @@ public class InMemoryStoryRepository implements StoryRepository {
         Story story1 = new Story("Implement user authentication system", StoryStatus.IN_PROGRESS, 8, "Sairaj Dalvi, Pranav Irlapale");
         story1.setId(generateId());
         stories.add(story1);
+        sprintStoryIds.add(story1.getId());
 
         Story story2 = new Story("Design dashboard UI components", StoryStatus.TO_DO, 5, "Gunjan Purohit");
         story2.setId(generateId());
         stories.add(story2);
+        sprintStoryIds.add(story2.getId());
 
         Story story3 = new Story("Setup CI/CD pipeline", StoryStatus.DONE, 13, "Shreyas Revankar, Viraj Rathor");
         story3.setId(generateId());
         stories.add(story3);
+        sprintStoryIds.add(story3.getId());
 
         Story story4 = new Story("Create API documentation", StoryStatus.TO_DO, 3, "Viraj Rathor");
         story4.setId(generateId());
         stories.add(story4);
+        sprintStoryIds.add(story4.getId());
 
         Story story5 = new Story("Refactor database layer", StoryStatus.TO_DO, 8, "");
         story5.setId(generateId());
         stories.add(story5);
+        sprintStoryIds.add(story5.getId());
 
         Story story6 = new Story("Add unit tests for services", StoryStatus.TO_DO, 5, "");
         story6.setId(generateId());
         stories.add(story6);
+        sprintStoryIds.add(story6.getId());
     }
 
     private String generateId() {
@@ -240,5 +250,51 @@ public class InMemoryStoryRepository implements StoryRepository {
         if (!found) {
             throw new IllegalArgumentException("Story with ID '" + storyId + "' not found");
         }
+    }
+
+    @Override
+    public List<Story> findByAssignee(String name) {
+        List<Story> assignedStories = new ArrayList<>();
+        if (name == null || name.trim().isEmpty()) {
+            return assignedStories;
+        }
+        String searchName = name.trim();
+        String firstName = searchName.split(" ")[0];
+        for (Story story : stories) {
+            String assignees = story.getAssignees();
+            if (assignees != null && !assignees.trim().isEmpty()) {
+                if (assignees.contains(searchName) || assignees.contains(firstName)) {
+                    assignedStories.add(story);
+                }
+            }
+        }
+        return assignedStories;
+    }
+
+    @Override
+    public void moveToBacklog(String storyId) {
+        sprintStoryIds.remove(storyId);
+    }
+
+    @Override
+    public List<Story> findSprintStories() {
+        List<Story> sprintStories = new ArrayList<>();
+        for (Story story : stories) {
+            if (sprintStoryIds.contains(story.getId())) {
+                sprintStories.add(story);
+            }
+        }
+        return sprintStories;
+    }
+
+    @Override
+    public List<Story> findBacklogStories() {
+        List<Story> backlogStories = new ArrayList<>();
+        for (Story story : stories) {
+            if (!sprintStoryIds.contains(story.getId())) {
+                backlogStories.add(story);
+            }
+        }
+        return backlogStories;
     }
 }

@@ -1,6 +1,7 @@
 package com.scrumsim.ui;
 
 import com.scrumsim.model.Story;
+import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.service.BacklogService;
 import com.scrumsim.store.UserSession;
 import com.scrumsim.ui.backlog.BacklogDialogController;
@@ -15,18 +16,18 @@ public class BacklogDialog extends JDialog {
 
     private final BacklogService backlogService;
     private final BacklogDialogController controller;
-    private final List<Story> sprintStories;
+    private final StoryRepository storyRepository;
     private List<Story> backlogStories;
     private JPanel storiesPanel;
     private JScrollPane scrollPane;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
-    public BacklogDialog(Frame parent, BacklogService backlogService, List<Story> sprintStories) {
+    public BacklogDialog(Frame parent, BacklogService backlogService, StoryRepository storyRepository) {
         super(parent, "Product Backlog", true);
         this.backlogService = backlogService;
-        this.sprintStories = sprintStories;
-        this.backlogStories = backlogService.getBacklogStories(sprintStories);
+        this.storyRepository = storyRepository;
+        this.backlogStories = storyRepository.findBacklogStories();
         this.selectionManager = new StorySelectionManager();
         this.multiSelectMode = false;
 
@@ -230,7 +231,7 @@ public class BacklogDialog extends JDialog {
     }
 
     private void refreshBacklogList() {
-        backlogStories = backlogService.getBacklogStories(sprintStories);
+        backlogStories = storyRepository.findBacklogStories();
         renderStories();
     }
 

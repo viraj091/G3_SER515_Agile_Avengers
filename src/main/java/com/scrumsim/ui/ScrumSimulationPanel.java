@@ -20,6 +20,8 @@ import com.scrumsim.service.StoryService;
 import com.scrumsim.service.DefaultStoryService;
 import com.scrumsim.service.StoryUpdateGuard;
 import com.scrumsim.service.DefaultStoryUpdateGuard;
+import com.scrumsim.service.StatusRefreshService;
+import com.scrumsim.service.DefaultStatusRefreshService;
 import com.scrumsim.repository.InMemoryStoryRepository;
 import com.scrumsim.repository.StoryRepository;
 import com.scrumsim.repository.StakeholderFeedbackRepository;
@@ -40,7 +42,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final String teamName;
     private final User currentUser;
 
-    private final List<Story> stories;
+    private List<Story> stories;
     private final JLabel progressLabel;
 
     private final StoryCardFactory storyCardFactory;
@@ -49,6 +51,7 @@ public class ScrumSimulationPanel extends JPanel {
     private final BacklogService backlogService;
     private final BusinessValueService businessValueService;
     private final StoryService storyService;
+    private final StatusRefreshService refreshService;
     private final StorySelectionManager selectionManager;
     private boolean multiSelectMode;
 
@@ -73,6 +76,10 @@ public class ScrumSimulationPanel extends JPanel {
         this.businessValueService = new DefaultBusinessValueService(sharedStoryRepository);
         StoryUpdateGuard guard = new DefaultStoryUpdateGuard();
         this.storyService = new DefaultStoryService(sharedStoryRepository, guard);
+
+        this.refreshService = new DefaultStatusRefreshService();
+        this.refreshService.addListener(this::handleStatusRefresh);
+        this.refreshService.start();
 
         this.progressLabel = new JLabel("", SwingConstants.CENTER);
         this.progressLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -172,7 +179,7 @@ public class ScrumSimulationPanel extends JPanel {
 
     private void showMyWorkDialog() {
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        MyWorkDialog dialog = new MyWorkDialog(parentFrame, currentUser.getName(), stories);
+        MyWorkDialog dialog = new MyWorkDialog(parentFrame, sharedStoryRepository, storyService, currentUser);
         dialog.setVisible(true);
     }
 
@@ -222,7 +229,7 @@ public class ScrumSimulationPanel extends JPanel {
         System.out.println("Total Backlog Stories: " + backlogStories.size());
 
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
-        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogService, stories);
+        BacklogDialog dialog = new BacklogDialog(parentFrame, backlogService, sharedStoryRepository);
         dialog.setVisible(true);
     }
 
@@ -256,10 +263,18 @@ public class ScrumSimulationPanel extends JPanel {
 
         JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addButtonPanel.setOpaque(false);
+
+        JButton moveToBacklogBtn = new JButton("Move to Backlog");
+        moveToBacklogBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        moveToBacklogBtn.setEnabled(!selectionManager.getSelectedStoryIds().isEmpty());
+        moveToBacklogBtn.addActionListener(e -> moveSelectedStoriesToBacklog());
+        addButtonPanel.add(moveToBacklogBtn);
+
         JButton addMoreButton = new JButton("Add More");
         addMoreButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         addMoreButton.addActionListener(e -> onAddStory());
         addButtonPanel.add(addMoreButton);
+
         backlog.add(addButtonPanel);
 
         return backlog;
@@ -359,7 +374,21 @@ public class ScrumSimulationPanel extends JPanel {
         refreshUI();
     }
 
+    private void moveSelectedStoriesToBacklog() {
+        List<String> selectedIds = selectionManager.getSelectedStoryIds();
+        if (selectedIds.isEmpty()) {
+            return;
+        }
+
+        backlogService.moveStoriesToBacklog(selectedIds);
+        selectionManager.clearSelection();
+        multiSelectMode = false;
+        refreshUI();
+    }
+
     private void refreshUI() {
+        this.stories = sharedStoryRepository.findSprintStories();
+
         removeAll();
 
         add(createHeader(), BorderLayout.NORTH);
@@ -372,8 +401,18 @@ public class ScrumSimulationPanel extends JPanel {
         repaint();
     }
 
+    private void handleStatusRefresh() {
+        SwingUtilities.invokeLater(this::refreshUI);
+    }
+
+    public void stopRefreshService() {
+        if (refreshService != null) {
+            refreshService.stop();
+        }
+    }
+
     private List<Story> initializeStories() {
-        return sharedStoryRepository.findAll();
+        return sharedStoryRepository.findSprintStories();
     }
 
     private List<Member> initializeMembers() {
